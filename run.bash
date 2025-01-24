@@ -7,10 +7,10 @@ docker build -t broswer_bot .
 username=$(whoami)
 if [ "$username" == "beastan" ]; then
     echo "We are running the docker container on $username's computer."
-    docker run --net host --gpus all -it -v /media/$username/projects/broswer-bot:/app broswer_bot
+    docker run --net host --gpus all -it -v /media/$username/projects/browse-bot:/app broswer_bot
 elif [ "$username" == "dhanoop" ]; then
     echo "We are running the docker container on $username's computer."
-    docker run --net host --gpus all -it -v /home/$username/Documents/projects/broswer-bot:/app broswer_bot
+    docker run --net host --gpus all -it -v /home/$username/Documents/projects/browse-bot:/app broswer_bot
 else
     echo "Wrong system to run this script."
 fi

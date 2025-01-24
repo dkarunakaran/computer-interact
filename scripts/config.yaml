@@ -1,0 +1,7 @@
+maintainer: Dhanoop Karunakaran
+debug: False
+GOOGLE_API:
+  scopes:
+    - 'https://mail.google.com/'
+    - 'https://www.googleapis.com/auth/tasks'
+    - 'https://www.googleapis.com/auth/drive'
