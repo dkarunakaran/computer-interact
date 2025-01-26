@@ -5,11 +5,11 @@ from langchain import hub
 import os
 import logging
 import yaml
-from gmail_agent import GmailAgent
-from browser_agent import BrowserAgent
+from agents.gmail_agent import GmailAgent
+from agents.browser_agent import BrowserAgent
 from secret import Secret
 from langchain_core.prompts import ChatPromptTemplate
-from agent_state import AgentState
+from agents.agent_state import AgentState
 from typing import Literal
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import HumanMessage, AIMessage
@@ -24,7 +24,6 @@ class SupervisorAgents:
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
         self.gmail_agent = GmailAgent(cfg=self.cfg)
         self.browser_agent = BrowserAgent(cfg=self.cfg)
-
         workers_list = ['gmail_operation_agent', 'browser_operation_agent', 'none']
         system_prompt = (
             "You are a supervisor tasked with managing a conversation between the"
