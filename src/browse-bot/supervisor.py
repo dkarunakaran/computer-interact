@@ -16,7 +16,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 
 class SupervisorAgents:
     def __init__(self, openai_api_token=None):
-        with open("/app/scripts/config.yaml") as f:
+        with open("config.yaml") as f:
             self.cfg = yaml.load(f, Loader=yaml.FullLoader)
         self.logger = self.logger_helper(self.cfg)
         if not os.environ.get("OPENAI_API_KEY"):

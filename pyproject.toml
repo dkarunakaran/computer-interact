@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "browse-bot"
+version = "0.1.0"
+description = "A library for automating tasks"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "google-api-python-client==2.159.0",
+    "google-auth==2.37.0",
+    "google-auth-httplib2==0.2.0",
+    "google-auth-oauthlib==1.2.0",
+    "beautifulsoup4~=4.12.3",
+    "lxml==5.3.0",
+    "PyYAML==6.0.2",
+    "langchain==0.3.14",
+    "langchain-chroma==0.2.0",
+    "langchain-ollama==0.2.2",
+    "langchain-huggingface==0.1.2",
+    "langchain_community==0.3.14",
+    "langchain-openai==0.3.0",
+    "langgraph==0.2.60",
+    "langgraph-checkpoint-sqlite==2.0.1",
+    "google-generativeai==0.8.4",
+    "langchain-google-community==2.0.4",
+    "pytest-playwright==0.6.2",
+    "playwright==1.49.1",
+    "pandas==2.2.3",
+    "python-dotenv==1.0.1"
+]
+
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
