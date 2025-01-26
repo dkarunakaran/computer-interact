@@ -3,6 +3,7 @@ token.json
 secret.py
 scripts/credentials.json
 scripts/token.json
+.pypirc
 
 
 # Byte-compiled / optimized / DLL files
