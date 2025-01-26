@@ -1,7 +1,15 @@
 maintainer: Dhanoop Karunakaran
-debug: False
+debug: True
 GOOGLE_API:
   scopes:
     - 'https://mail.google.com/'
     - 'https://www.googleapis.com/auth/tasks'
     - 'https://www.googleapis.com/auth/drive'
+
+GMAIL_AGENT:
+  recursion_limit: 10
+  verbose: false
+
+BROWSER_AGENT:
+  recursion_limit: 10
+  verbose: false

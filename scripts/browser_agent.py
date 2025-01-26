@@ -8,14 +8,15 @@ from langchain_community.tools.playwright.utils import create_sync_playwright_br
 
 
 class BrowserAgent:
-    def __init__(self):
+    def __init__(self, cfg):
+        self.cfg = cfg
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
         sync_browser = create_sync_playwright_browser()
         playwright_toolkit = PlayWrightBrowserToolkit.from_browser(sync_browser=sync_browser)
         tools = playwright_toolkit.get_tools()
         self.context = """
             You are a browser assistant. you can perform various operation in browser using browser tools.
-            All these actions are subjected to user input. Use your tools to answer questions. If you do not have a tool to answer the question, say so.
+            Use your tools to answer questions. If you do not have a tool to answer the question, say so.
             If the website is google search, look for textarea html element instead of input element for filling.
         """ +  """
                 ONLY respond to the part of query relevant to your purpose.
@@ -23,4 +24,4 @@ class BrowserAgent:
         """
         self.prompt = hub.pull("ebahr/openai-tools-agent-with-context:3b3e6baf") 
         agent = create_openai_tools_agent(llm, tools, self.prompt)
-        self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+        self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=self.cfg['BROWSER_AGENT']['verbose'])

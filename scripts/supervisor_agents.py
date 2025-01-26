@@ -12,6 +12,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from agent_state import AgentState
 from typing import Literal
 from langgraph.graph import StateGraph, START, END
+from langchain_core.messages import HumanMessage, AIMessage
 
 class SupervisorAgents:
     def __init__(self, openai_api_token=None):
@@ -21,17 +22,18 @@ class SupervisorAgents:
         if not os.environ.get("OPENAI_API_KEY"):
             os.environ["OPENAI_API_KEY"] = openai_api_token
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
-        self.gmail_agent = GmailAgent()
-        self.browser_agent = BrowserAgent()
+        self.gmail_agent = GmailAgent(cfg=self.cfg)
+        self.browser_agent = BrowserAgent(cfg=self.cfg)
 
         workers_list = ['gmail_operation_agent', 'browser_operation_agent', 'none']
-
-        system_prompt = f"""You are a supervisor tasked with managing a conversation between the
-        following workers:  {','.join(workers_list)}. Given the following user request,
-        respond with only the worker that needs to act next. Each worker will perform a
-        task and respond with their results and status. The produced artifacts need to be of high quality. If you can't find a suitable worker, then use 'none' worker. The produced artifacts need to be of high quality. When finished executing the code,"
-    " respond with FINISH. You will NOT perform the the requested taks, but will always use the workers.
-        """
+        system_prompt = (
+            "You are a supervisor tasked with managing a conversation between the"
+            f" following workers: {','.join(workers_list)}. Given the following user request,"
+            " respond with the worker to act next. Each worker will perform a"
+            " task and respond with their results and status. When finished,"
+            " respond with FINISH."
+            "If you can't find a suitable worker, then use 'none' worker."
+        )
         prompt = ChatPromptTemplate.from_messages([("system", system_prompt),("human", "{input}")])
         self.supervisor_chain = prompt | llm
         workflow = StateGraph(AgentState)
@@ -58,8 +60,7 @@ class SupervisorAgents:
     def router(self, state) -> Literal["gmail_operation_agent", "browser_operation_agent", "__end__"]:
             
         # Sleep to avoid hitting QPM limits
-        result = state["message"]
-        last_result_text = result[-1]
+        last_result_text = state["message"][-1].content
 
         if "gmail_operation_agent" in last_result_text:
             return "gmail_operation_agent"
@@ -78,21 +79,27 @@ class SupervisorAgents:
         return "Supervisor"
 
     def supervisor_node(self, state: AgentState):
-        message = state["message"][-1]
-        result = self.supervisor_chain.invoke({'input': message})
-
-        return {'message': [result.content], 'sender': ['supervisor']}
+        self.logger.info("Supervisor node started")
+        message = state["message"]
+        result = self.supervisor_chain.invoke(message)
+        self.logger.debug(f"Supervisor result:{result}")
+        return {'message': [result], 'sender': ['supervisor']}
 
     def gmail_agent_node(self, state: AgentState):
-        prompt = state["message"][0]
-        result = self.gmail_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.browser_agent.context,"input": prompt}, {"recursion_limit": 10})
-
-        return {'message': ["gmail_agent_node run completed"], 'sender': ['gmail_agent']}
+        self.logger.info("Gmail agent node started")
+        context = state["message"][0]
+        input = state["message"][-2]
+        result = self.gmail_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.gmail_agent.context+context,"input":input}, {"recursion_limit": self.cfg['GMAIL_AGENT']['recursion_limit']})
+        self.logger.debug(f"Gmail agent result:{result}")
+        return {'message': [result['output']], 'sender': ['gmail_agent']}
     
     def browser_agent_node(self, state: AgentState):
-        prompt = state["message"][0]
-        result = self.browser_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.browser_agent.context,"input": prompt}, {"recursion_limit": 10})
-        return {'message': ["browser_agent_node run completed"], 'sender': ['browser_agent']}
+        self.logger.info("Browser agent node started")
+        context = state["message"][0]
+        input = state["message"][-2]
+        result = self.browser_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.browser_agent.context+context,"input": input}, {"recursion_limit": self.cfg['BROWSER_AGENT']['recursion_limit']})
+        self.logger.debug(f"Browser agent result:{result}")
+        return {'message': [result['output']], 'sender': ['browser_agent']}
         
 
     # Ref - https://medium.com/pythoneers/beyond-print-statements-elevating-debugging-with-python-logging-715b2ae36cd5
@@ -143,10 +150,10 @@ if __name__ == "__main__":
     secret = Secret()
     supervisor = SupervisorAgents(openai_api_token=secret.open_ai_token)
     prompt1 = """
-        **Instruction:** 
-        go to gmail and find email with subject 'Timesheets to sign for Kids Early Learning Family Day Care'
+        go to gmail and find email with subject 'Open-Source Rival to OpenAI's Reasoning Model'
         We need only the content of the latest email of the above subject and disgard other emails.
-        Extract the URL (link) from the email content. 
+        Extract the first URL (link) from the email content.
+        Naviagte to the URL and summarise the content and no further navigation is required
 
         **Constraints:**
         - Only extract the first URL found in the email body.
@@ -166,4 +173,6 @@ if __name__ == "__main__":
     initial_state['message'] = [prompt1]
 
     result = supervisor.graph.invoke(initial_state, {"recursion_limit": 10})
-    print(result)
+    print("-------------------------------------")
+    print(f"Execution path: {result['sender']}")
+   
