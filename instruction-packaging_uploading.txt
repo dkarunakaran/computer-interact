@@ -1,0 +1,22 @@
+Structure of python packages
+
+1. create src folder
+2. create pyproject.toml 
+3. create LICENCE file
+4. create README.md file
+5. create test folder
+6. create a folder that is the project name under src
+7. put all library code in the new folder
+ 
+
+
+
+Uploading to testpypi
+
+1. conda create --name browse-bot python=3.12 (Only first time)
+2. conda activate browse-bot
+3. python -m pip install --upgrade build (Only first time)
+4. python -m build
+5. python -m pip install --upgrade twine (Only first time)
+6. python -m twine upload --verbose --repository testpypi dist/*
+

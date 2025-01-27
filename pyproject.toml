@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "browse-bot"
-version = "0.1.0"
-description = "A library for automating tasks"
+version = "0.1.1"
+description = "A library for automating web tasks"
 authors = [
     { name = "Dhanoop Karunakaran" }
 ]
@@ -13,7 +13,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache License",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
