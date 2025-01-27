@@ -9,11 +9,14 @@ To learn more about the library, check out the [documentation 📕]
 With pip:
 
 ```bash
-pip install web-operator
+python -m pip install web-operator
 ```
 
 install playwright:
 
 ```bash
 playwright install
+
 ```
+
+# Quick code
