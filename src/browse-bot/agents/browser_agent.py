@@ -22,6 +22,6 @@ class BrowserAgent:
                 ONLY respond to the part of query relevant to your purpose.
                 IGNORE tasks you can't complete. 
         """
-        self.prompt = hub.pull("ebahr/openai-tools-agent-with-context:3b3e6baf") 
+        self.prompt = hub.pull("dkarunakaran/openai-tools-agent-with-context") 
         agent = create_openai_tools_agent(llm, tools, self.prompt)
         self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=self.cfg['BROWSER_AGENT']['verbose'])

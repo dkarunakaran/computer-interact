@@ -1,29 +1,23 @@
 from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_openai_tools_agent
-from langchain.tools import Tool
-from langchain import hub
+from dotenv import load_dotenv
 import os
-import logging
 import yaml
 from agents.gmail_agent import GmailAgent
 from agents.browser_agent import BrowserAgent
-from secret import Secret
 from langchain_core.prompts import ChatPromptTemplate
 from agents.agent_state import AgentState
 from typing import Literal
 from langgraph.graph import StateGraph, START, END
-from langchain_core.messages import HumanMessage, AIMessage
 from utils import logger_helper
 
-class SupervisorAgents:
-    def __init__(self, openai_api_token=None):
+class Supervisor:
+    def __init__(self):
         with open("config.yaml") as f:
             self.config = yaml.load(f, Loader=yaml.FullLoader)
-
         # __ adding infront of the variable and method make them private
         self.__logger = logger_helper(self.config)
         if not os.environ.get("OPENAI_API_KEY"):
-            os.environ["OPENAI_API_KEY"] = openai_api_token
+            raise KeyError("OPENAI API token is missing, please provide it .env file.") 
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
         self.__gmail_agent = GmailAgent(cfg=self.config)
         self.__browser_agent = BrowserAgent(cfg=self.config)
@@ -88,6 +82,10 @@ class SupervisorAgents:
         return {'message': [result], 'sender': ['supervisor']}
 
     def __gmail_agent_node(self, state: AgentState):
+        if not os.environ.get("GOOGLE_API_CREDS_LOC"):
+            raise KeyError("Local file path credentials.json is miising, please provide it in .env file.") 
+        if not os.environ.get("GOOGLE_API_TOKEN_LOC"):
+            raise KeyError("Local file path token.json is miising, please provide it in .env file.") 
         self.__logger.info("Gmail agent node started")
         context = state["message"][0]
         input = state["message"][-2]
@@ -102,11 +100,19 @@ class SupervisorAgents:
         result = self.__browser_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.__browser_agent.context+context,"input": input}, {"recursion_limit": self.config['BROWSER_AGENT']['recursion_limit']})
         self.__logger.debug(f"Browser agent result:{result}")
         return {'message': [result['output']], 'sender': ['browser_agent']}
+    
+    def run(self, query=None):
+        initial_state = AgentState()
+        initial_state['message'] = [query]
+
+        result = supervisor.graph.invoke(initial_state, {"recursion_limit": supervisor.config['SUPERVISOR']['recursion_limit']})
+        self.__logger.info("-------------------------------------")
+        self.__logger.info(f"Execution path: {result['sender']}")
         
 
 if __name__ == "__main__":
-    secret = Secret()
-    supervisor = SupervisorAgents(openai_api_token=secret.open_ai_token)
+    load_dotenv()  
+    supervisor = Supervisor()
     prompt1 = """
         go to gmail and find email with subject 'Open-Source Rival to OpenAI's Reasoning Model'
         We need only the content of the latest email of the above subject and disgard other emails.
@@ -124,14 +130,7 @@ if __name__ == "__main__":
     prompt3 ="""
         do anything
     """
-    #output = supervisor.run(prompt2)
-    #print(output)
-
-    initial_state = AgentState()
-    initial_state['message'] = [prompt1]
-
-    result = supervisor.graph.invoke(initial_state, {"recursion_limit": supervisor.config['SUPERVISOR']['recursion_limit']})
-    print("-------------------------------------")
-    print(f"Execution path: {result['sender']}")
+    supervisor.run(query=prompt2)
+    
 
    
