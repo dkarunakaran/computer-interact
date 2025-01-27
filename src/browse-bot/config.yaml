@@ -8,8 +8,11 @@ GOOGLE_API:
 
 GMAIL_AGENT:
   recursion_limit: 10
-  verbose: false
+  verbose: False
 
 BROWSER_AGENT:
   recursion_limit: 10
-  verbose: false
+  verbose: False
+
+SUPERVISOR:
+  recursion_limit: 10

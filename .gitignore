@@ -4,6 +4,7 @@ secret.py
 scripts/credentials.json
 scripts/token.json
 .pypirc
+.env
 
 
 # Byte-compiled / optimized / DLL files
