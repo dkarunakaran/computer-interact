@@ -12,7 +12,7 @@ from langchain_google_community.gmail.get_thread import GmailGetThread
 from langchain_google_community.gmail.search import GmailSearch
 from langchain_google_community.gmail.send_message import GmailSendMessage
 from langchain_google_community.gmail.utils import build_resource_service
-from agent_tools.custom_get_message import GmailGetMessage
+from web_operator.agent_tools.custom_get_message import GmailGetMessage
 
 if TYPE_CHECKING:
     # This is for linting and IDE typehints

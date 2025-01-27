@@ -1,29 +1,34 @@
 from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
 import os
 import yaml
-from agents.gmail_agent import GmailAgent
-from agents.browser_agent import BrowserAgent
-from langchain_core.prompts import ChatPromptTemplate
-from agents.agent_state import AgentState
-from typing import Literal
+from web_operator.agents.gmail_agent import GmailAgent
+from web_operator.agents.browser_agent import BrowserAgent
+from web_operator.agents.agent_state import AgentState
+from typing import Literal, List
 from langgraph.graph import StateGraph, START, END
-from utils import logger_helper
+from web_operator.utils import logger_helper
 
 class Supervisor:
-    def __init__(self):
-        with open("config.yaml") as f:
-            self.config = yaml.load(f, Loader=yaml.FullLoader)
+    def __init__(self, token_required_agents:List[str]):
+        self.config = self.__get_config()
         # __ adding infront of the variable and method make them private
         self.__logger = logger_helper(self.config)
         if not os.environ.get("OPENAI_API_KEY"):
             raise KeyError("OPENAI API token is missing, please provide it .env file.") 
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
-        self.__gmail_agent = GmailAgent(cfg=self.config)
+        self.token_required_agents = token_required_agents
+        workers = []
+        if 'gmail_agent' in self.token_required_agents:
+            self.__gmail_agent = GmailAgent(cfg=self.config)
+            workers.append('gmail_operation_agent')
+        workers.append('browser_operation_agent')
         self.__browser_agent = BrowserAgent(cfg=self.config)
+        workers.append('none')
         system_prompt = (
             "You are a supervisor tasked with managing a conversation between the"
-            f" following workers: 'gmail_operation_agent', 'browser_operation_agent', 'none'."
+            f" following workers: {','.join(workers)}."
             " Given the following user request,"
             " respond with the worker to act next. Each worker will perform a"
             " task and respond with their results and status. When finished,"
@@ -51,6 +56,29 @@ class Supervisor:
             "Supervisor",
         )
         self.graph = workflow.compile()
+
+    def __get_config(self):
+        cfg = {
+            'debug': True,
+            'GOOGLE_API':{
+                'scopes':['https://mail.google.com/', 'https://www.googleapis.com/auth/tasks', 'https://www.googleapis.com/auth/drive'
+                ]
+            },
+            'GMAIL_AGENT':{
+                'recursion_limit': 10,
+                'verbose': False
+            },
+            'BROWSER_AGENT': {
+                'recursion_limit': 10,
+                'verbose': False
+            },
+            'SUPERVISOR':{
+                'recursion_limit': 10
+            }
+        }
+
+        return cfg
+
 
     # This is the router
     def __router(self, state) -> Literal["gmail_operation_agent", "browser_operation_agent", "__end__"]:
@@ -82,10 +110,12 @@ class Supervisor:
         return {'message': [result], 'sender': ['supervisor']}
 
     def __gmail_agent_node(self, state: AgentState):
+        if not 'gmail_agent' in self.token_required_agents:
+            raise KeyError("gmail_agent is not activated, add that to the token_required_agents varible.") 
         if not os.environ.get("GOOGLE_API_CREDS_LOC"):
-            raise KeyError("Local file path credentials.json is miising, please provide it in .env file.") 
+            raise KeyError("Local file path of credentials.json is missing, please provide it in .env file.") 
         if not os.environ.get("GOOGLE_API_TOKEN_LOC"):
-            raise KeyError("Local file path token.json is miising, please provide it in .env file.") 
+            raise KeyError("Local file path of token.json is miising, please provide it in .env file.") 
         self.__logger.info("Gmail agent node started")
         context = state["message"][0]
         input = state["message"][-2]
@@ -105,7 +135,7 @@ class Supervisor:
         initial_state = AgentState()
         initial_state['message'] = [query]
 
-        result = supervisor.graph.invoke(initial_state, {"recursion_limit": supervisor.config['SUPERVISOR']['recursion_limit']})
+        result = self.graph.invoke(initial_state, {"recursion_limit": self.config['SUPERVISOR']['recursion_limit']})
         self.__logger.info("-------------------------------------")
         self.__logger.info(f"Execution path: {result['sender']}")
         

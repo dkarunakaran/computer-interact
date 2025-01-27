@@ -19,8 +19,8 @@ from langchain_community.tools.playwright.get_elements import GetElementsTool
 from langchain_community.tools.playwright.navigate import NavigateTool
 from langchain_community.tools.playwright.navigate_back import NavigateBackTool
 
-from agent_tools.custom_playwright_fill import FillTool
-from agent_tools.custom_playwright_click import ClickTool
+from web_operator.agent_tools.custom_playwright_fill import FillTool
+from web_operator.agent_tools.custom_playwright_click import ClickTool
 
 if TYPE_CHECKING:
     from playwright.async_api import Browser as AsyncBrowser

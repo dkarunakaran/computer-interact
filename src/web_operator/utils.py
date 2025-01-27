@@ -48,7 +48,10 @@ def logger_helper(cfg):
 
     return logger
         
-def authenticate(cfg):
+def google_api_authenticate(cfg):
+    
+    if not os.environ.get("GOOGLE_API_CREDS_LOC"):
+      raise KeyError("Local file path of credentials.json is missing, please provide it in .env file.") 
 
     # If modifying these scopes, delete the file token.json.
     SCOPES = cfg['GOOGLE_API']['scopes']

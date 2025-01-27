@@ -3,7 +3,7 @@ from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_openai import ChatOpenAI
 import os
 #from langchain_community.agent_toolkits import PlayWrightBrowserToolkit #This is the replaced import
-from agent_tools.custom_playwright_toolkit import PlayWrightBrowserToolkit
+from web_operator.agent_tools.custom_playwright_toolkit import PlayWrightBrowserToolkit
 from langchain_community.tools.playwright.utils import create_sync_playwright_browser
 
 

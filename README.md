@@ -9,7 +9,7 @@ To learn more about the library, check out the [documentation 📕]
 With pip:
 
 ```bash
-pip install browse-bot
+pip install web-operator
 ```
 
 install playwright:

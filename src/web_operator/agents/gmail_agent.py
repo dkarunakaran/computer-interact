@@ -1,7 +1,7 @@
 from langchain import hub
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_openai import ChatOpenAI
-from agent_tools.custom_gmail_toolkit import GmailToolkit
+from web_operator.agent_tools.custom_gmail_toolkit import GmailToolkit
 from langchain_google_community.gmail.utils import (
     build_resource_service,
     get_gmail_credentials,

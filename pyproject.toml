@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "browse-bot"
-version = "0.1.5"
+name = "web_operator"
+version = "0.1.0"
 description = "A library for automating web tasks"
 authors = [
     { name = "Dhanoop Karunakaran" }
