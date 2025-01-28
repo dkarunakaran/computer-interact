@@ -107,16 +107,6 @@ supervisor.run(query=prompt)
 # Output
 print(supervisor.get_results())
 ```
-## Available Agents
-
-1. **browse-agent**:
-* Provides web search capabilities.
-* Active by default.
-2. **gmail_agent**:
-* Enables Gmail operations.
-* Not active by default.
-* Requires a Google API token.
-* Must be specified in token_required_agents when initializing the supervisor.
 
 ## How to change the basic config
 
@@ -161,3 +151,14 @@ OPENAI_API_KEY=your_token
 GOOGLE_API_CREDS_LOC=path to your credentials.json
 GOOGLE_API_TOKEN_LOC=path to token.json
 ```
+
+## Available Agents
+
+1. **browse_agent**:
+* Provides web search capabilities.
+* Active by default.
+2. **gmail_agent**:
+* Enables Gmail operations.
+* Not active by default.
+* Requires a Google API token.
+* Must be specified in token_required_agents when initializing the supervisor.
