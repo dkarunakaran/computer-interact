@@ -156,7 +156,8 @@ print(supervisor.get_results())
 ```
 
 ## Content of .env file
-
+```
 OPENAI_API_KEY=your_token
 GOOGLE_API_CREDS_LOC=path to your credentials.json
 GOOGLE_API_TOKEN_LOC=path to token.json
+```
