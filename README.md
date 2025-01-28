@@ -59,6 +59,9 @@ The Supervisor class manages different web agents. We need to specify any agents
 load_dotenv()  # Load environment variables
 token_required_agents = [] 
 supervisor = Supervisor(token_required_agents=token_required_agents)
+
+# Configure the supervisor for automation task
+supervisor.configure()
 ```
 3. Web Search Operation: 
 This example shows how to perform a search on DuckDuckGo:
@@ -67,6 +70,9 @@ prompt = """
     Go to https://duckduckgo.com, search for insurance usecases in connected vehicles using input box you find from that page, click search button and return the summary of results you get. No need to perform any further actions.
 """
 supervisor.run(query=prompt)
+
+# Output
+print(supervisor.get_results())
 ```
 
 ## Basic Usage with token required agents like gmail
@@ -79,6 +85,9 @@ from dotenv import load_dotenv
 load_dotenv()  # Load environment variables
 token_required_agents = ['gmail_agent']  # Specify token required agents
 supervisor = Supervisor(token_required_agents=token_required_agents)
+
+# Configure the supervisor for automation task
+supervisor.configure()
 ```
 3. Gmail Email Processing
 ```
@@ -94,6 +103,9 @@ prompt = """
 """
 
 supervisor.run(query=prompt)
+
+# Output
+print(supervisor.get_results())
 ```
 ## Available Agents
 
@@ -125,3 +137,26 @@ print(supervisor.config)
 {'debug': True, 'GOOGLE_API': {'scopes': ['https://mail.google.com/', 'https://www.googleapis.com/auth/tasks', 'https://www.googleapis.com/auth/drive']}, 'GMAIL_AGENT': {'recursion_limit': 10, 'verbose': False}, 'BROWSER_AGENT': {'recursion_limit': 10, 'verbose': False}, 'SUPERVISOR': {'recursion_limit': 10}}
 
 ```
+3. Sample full code
+```
+load_dotenv()  
+token_required_agents = []
+supervisor = Supervisor(token_required_agents=token_required_agents)
+
+# Make sure you change the config before the configure method
+supervisor.config['GMAIL_AGENT']['verbose'] = True # verbose for displaying detailed logs of agents' tasks
+supervisor.config['BROWSER_AGENT']['verbose'] = True
+
+# Configure the supervisor for automation task
+supervisor.configure()
+supervisor.run(query=prompt2)
+
+# Output
+print(supervisor.get_results())
+```
+
+## Content of .env file
+
+OPENAI_API_KEY=your_token
+GOOGLE_API_CREDS_LOC=path to your credentials.json
+GOOGLE_API_TOKEN_LOC=path to token.json

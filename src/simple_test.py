@@ -20,5 +20,13 @@ prompt2 = """
 load_dotenv()  
 token_required_agents = []
 supervisor = Supervisor(token_required_agents=token_required_agents)
+# Make sure you change the config before the configure method
+supervisor.config['GMAIL_AGENT']['verbose'] = True
+supervisor.config['BROWSER_AGENT']['verbose'] = True
+
+# Configure the supervisor for automation task
+supervisor.configure()
 supervisor.run(query=prompt2)
+
+print(supervisor.get_results())
 

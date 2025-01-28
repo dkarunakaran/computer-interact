@@ -9,6 +9,7 @@ from web_operator.agents.agent_state import AgentState
 from typing import Literal, List
 from langgraph.graph import StateGraph, START, END
 from web_operator.utils import logger_helper
+from langgraph.checkpoint.memory import MemorySaver
 
 class Supervisor:
     def __init__(self, token_required_agents:List[str]):
@@ -17,9 +18,12 @@ class Supervisor:
         self.__logger = logger_helper(self.config)
         if not os.environ.get("OPENAI_API_KEY"):
             raise KeyError("OPENAI API token is missing, please provide it .env file.") 
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
         self.token_required_agents = token_required_agents
+        self.graph_config = {}
 
+    def configure(self):
+        self.graph_config = {"configurable": {"thread_id": "1", "recursion_limit": self.config['SUPERVISOR']['recursion_limit']}}
+        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
         # Specify the liat of agents
         workers = []
         if 'gmail_agent' in self.token_required_agents:
@@ -59,7 +63,11 @@ class Supervisor:
             "BrowserAgent",
             "Supervisor",
         )
-        self.graph = workflow.compile()
+
+        # Set up memory
+        memory = MemorySaver()
+        self.graph = workflow.compile(checkpointer=memory)
+
 
     def __get_config(self):
         """
@@ -77,7 +85,7 @@ class Supervisor:
             },
             'BROWSER_AGENT': {
                 'recursion_limit': 10,
-                'verbose': True
+                'verbose': False
             },
             'SUPERVISOR':{
                 'recursion_limit': 10
@@ -142,10 +150,13 @@ class Supervisor:
     def run(self, query=None):
         initial_state = AgentState()
         initial_state['message'] = [query]
-
-        result = self.graph.invoke(initial_state, {"recursion_limit": self.config['SUPERVISOR']['recursion_limit']})
+        result = self.graph.invoke(initial_state, config=self.graph_config)
         self.__logger.info("-------------------------------------")
         self.__logger.info(f"Execution path: {result['sender']}")
+
+    def get_results(self):
+        return self.graph.get_state(self.graph_config).values["message"]
+
         
 
 if __name__ == "__main__":
