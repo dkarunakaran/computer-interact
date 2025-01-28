@@ -20,5 +20,8 @@ prompt2 = """
 load_dotenv()  
 #agents = ['gmail_agent']
 supervisor = Supervisor(token_required_agents=[])
-google_api_authenticate(supervisor.config)
+#google_api_authenticate(supervisor.config)
+print(supervisor.config)
+supervisor.config["debug"] = True
+print(supervisor.config)
 #supervisor.run(query=prompt1)

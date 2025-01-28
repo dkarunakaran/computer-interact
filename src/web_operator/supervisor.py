@@ -19,6 +19,8 @@ class Supervisor:
             raise KeyError("OPENAI API token is missing, please provide it .env file.") 
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
         self.token_required_agents = token_required_agents
+
+        # Specify the liat of agents
         workers = []
         if 'gmail_agent' in self.token_required_agents:
             self.__gmail_agent = GmailAgent(cfg=self.config)
@@ -37,6 +39,8 @@ class Supervisor:
         )
         prompt = ChatPromptTemplate.from_messages([("system", system_prompt),("human", "{input}")])
         self.__supervisor_chain = prompt | llm
+
+        # Create langgraph workflow for the agents 
         workflow = StateGraph(AgentState)
         workflow.add_node("Supervisor", self.__supervisor_node)
         workflow.add_node("GmailAgent", self.__gmail_agent_node)
@@ -58,6 +62,9 @@ class Supervisor:
         self.graph = workflow.compile()
 
     def __get_config(self):
+        """
+        This function defines the config for the library
+        """
         cfg = {
             'debug': False,
             'GOOGLE_API':{

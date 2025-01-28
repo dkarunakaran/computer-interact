@@ -6,7 +6,7 @@ To learn more about the library, check out the [documentation 📕]
 
 ## Installation
 
-1. Setup conda enviornment
+1. Setup conda enviornment with python 3.12
 
 2. Web-operator and playwright instllation
 
@@ -14,6 +14,10 @@ To learn more about the library, check out the [documentation 📕]
     python -m pip install web-operator
 
     playwright install
+
+    playwright install-deps 
+
+    playwright install chrome
     ```
 
 3. Environment Setup
@@ -103,3 +107,23 @@ supervisor.run(query=prompt)
 * Not active by default.
 * Requires a Google API token.
 * Must be specified in token_required_agents when initializing the supervisor.
+
+## How to change the basic config
+
+1. print config 
+```
+print(supervisor.config)
+
+#Typical output
+{'debug': False, 'GOOGLE_API': {'scopes': ['https://mail.google.com/', 'https://www.googleapis.com/auth/tasks', 'https://www.googleapis.com/auth/drive']}, 'GMAIL_AGENT': {'recursion_limit': 10, 'verbose': False}, 'BROWSER_AGENT': {'recursion_limit': 10, 'verbose': False}, 'SUPERVISOR': {'recursion_limit': 10}}
+
+```
+2. modify
+```
+supervisor.config["debug"] = True
+print(supervisor.config)
+
+#Typical output
+{'debug': True, 'GOOGLE_API': {'scopes': ['https://mail.google.com/', 'https://www.googleapis.com/auth/tasks', 'https://www.googleapis.com/auth/drive']}, 'GMAIL_AGENT': {'recursion_limit': 10, 'verbose': False}, 'BROWSER_AGENT': {'recursion_limit': 10, 'verbose': False}, 'SUPERVISOR': {'recursion_limit': 10}}
+
+```
