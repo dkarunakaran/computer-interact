@@ -49,14 +49,14 @@ To learn more about the library, check out the [documentation 📕]
 from web_operator.supervisor import Supervisor
 from dotenv import load_dotenv
 ```
-2. Initializing the Supervisor
+2. Initializing the Supervisor: 
 The Supervisor class manages different web agents. We need to specify any agents that required tokens. All others are not needed to mention. 
 ```
 load_dotenv()  # Load environment variables
 token_required_agents = [] 
 supervisor = Supervisor(token_required_agents=token_required_agents)
 ```
-3. Web Search Operation
+3. Web Search Operation: 
 This example shows how to perform a search on DuckDuckGo:
 ```
 prompt = """
@@ -93,3 +93,13 @@ prompt = """
 
 supervisor.run(query=prompt)
 ```
+## Available Agents
+
+1. **browse-agent**:
+* Provides web search capabilities.
+* Active by default.
+2. **gmail_agent**:
+* Enables Gmail operations.
+* Not active by default.
+* Requires a Google API token.
+* Must be specified in token_required_agents when initializing the supervisor.

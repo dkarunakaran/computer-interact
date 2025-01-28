@@ -59,7 +59,7 @@ class Supervisor:
 
     def __get_config(self):
         cfg = {
-            'debug': True,
+            'debug': False,
             'GOOGLE_API':{
                 'scopes':['https://mail.google.com/', 'https://www.googleapis.com/auth/tasks', 'https://www.googleapis.com/auth/drive'
                 ]
