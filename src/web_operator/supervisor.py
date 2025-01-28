@@ -77,7 +77,7 @@ class Supervisor:
             },
             'BROWSER_AGENT': {
                 'recursion_limit': 10,
-                'verbose': False
+                'verbose': True
             },
             'SUPERVISOR':{
                 'recursion_limit': 10
@@ -111,8 +111,9 @@ class Supervisor:
 
     def __supervisor_node(self, state: AgentState):
         self.__logger.info("Supervisor node started")
-        message = state["message"]
-        result = self.__supervisor_chain.invoke(message)
+        system_message = state["message"][0:-1]
+        input_message = state["message"][-1]
+        result = self.__supervisor_chain.invoke({'system': system_message, 'input': input_message})
         self.__logger.debug(f"Supervisor result:{result}")
         return {'message': [result], 'sender': ['supervisor']}
 

@@ -16,12 +16,16 @@ class BrowserAgent:
         tools = playwright_toolkit.get_tools()
         self.context = """
             You are a browser assistant. you can perform various operation in browser using browser tools.
-            Use your tools to answer questions. If you do not have a tool to answer the question, say so.
-            If the website is google search, look for textarea html element instead of input element for filling.
+            Use your tools to answer questions. For example, use fill tool to fill in fields. 
+            If you do not have a tool to answer the question, say so.
+            If the website is google.com, look for textarea html element instead of input element for filling.
+            if the website is duckduckgo.com, look for button element with aria-label with 'Search' for click and input element with id 'searchbox_input' for filling the text.
         """ +  """
                 ONLY respond to the part of query relevant to your purpose.
                 IGNORE tasks you can't complete. 
         """
+        #DO NOT ASK for further assistance unless user specified.
+        #DO NOR REPEAT the same search.
         self.prompt = hub.pull("dkarunakaran/openai-tools-agent-with-context") 
         agent = create_openai_tools_agent(llm, tools, self.prompt)
         self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=self.cfg['BROWSER_AGENT']['verbose'])

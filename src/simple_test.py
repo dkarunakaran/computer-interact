@@ -15,13 +15,10 @@ prompt1 = """
         """
 
 prompt2 = """
-            Go to https://duckduckgo.com, search for insurance usecases in connected vehicles using input box you find from that page, click search button and return the summary of results you get. Use fill tool to fill in fields and print out url at each step.
+            Go to https://duckduckgo.com, search for insurance usecases in connected vehicles using input box you find from that page, click search button and get the result and summarise it. Once you get the result, stop the task.
         """
 load_dotenv()  
-#agents = ['gmail_agent']
-supervisor = Supervisor(token_required_agents=[])
-#google_api_authenticate(supervisor.config)
-print(supervisor.config)
-supervisor.config["debug"] = True
-print(supervisor.config)
-#supervisor.run(query=prompt1)
+token_required_agents = []
+supervisor = Supervisor(token_required_agents=token_required_agents)
+supervisor.run(query=prompt2)
+
