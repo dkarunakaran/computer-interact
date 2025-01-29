@@ -11,7 +11,7 @@ class BrowserAgent:
     def __init__(self, cfg):
         self.cfg = cfg
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
-        sync_browser = create_sync_playwright_browser()
+        sync_browser = create_sync_playwright_browser(headless=self.cfg['BROWSER_AGENT']['headless'])
         playwright_toolkit = PlayWrightBrowserToolkit.from_browser(sync_browser=sync_browser)
         tools = playwright_toolkit.get_tools()
         self.context = """

@@ -13,6 +13,10 @@ To learn more about the library, check out the [documentation 📕]
     ```
     python -m pip install web-operator
 
+    conda install playwright
+
+    pip install playwright
+
     playwright install
 
     playwright install-deps 
@@ -107,6 +111,39 @@ supervisor.run(query=prompt)
 # Output
 print(supervisor.get_results())
 ```
+
+## Basic usage with headless mode turned off
+1. Actavte you conda enviorment
+2. Run the below command to find the appropriate xvfb library
+```
+conda search -c conda-forge xvfb
+```
+3. Select the appropriate xvfb library from the list.
+```
+# Sample output of step 1
+pytest-xvfb                    1.1.0          py27_0  conda-forge                                                            pytest-xvfb                    1.1.0       py36_1000  conda-forge                                                            conda-forge         
+xorg-x11-server-xvfb-conda-aarch64          1.20.4   ha134caf_1109  conda-forge                
+xorg-x11-server-xvfb-cos6-x86_64          1.17.4               4  pkgs/main           
+xorg-x11-server-xvfb-cos6-x86_64          1.17.4      h5c27f9d_0  pkgs/main             
+xorg-x11-server-xvfb-cos7-ppc64le          1.20.4    ha826a6f_103  conda-forge         
+xvfbwrapper                    0.2.9 py36h9f0ad1d_1002  conda-forge         
+xvfbwrapper                    0.2.9 py36h9f0ad1d_1003  conda-forge         
+xvfbwrapper                    0.2.9 py36hc560c46_1003  conda-forge         
+xvfbwrapper                    0.2.9       py37_1000  conda-forge         
+xvfbwrapper                    0.2.9       py37_1001  conda-forge         
+xvfbwrapper                    0.2.9 py37h89c1867_1004  conda-forge         
+xvfbwrapper                    0.2.9 py37hc8dfbb8_1002  conda-forge         
+xvfbwrapper                    0.2.9 py37hc8dfbb8_1003  conda-forge          
+```
+4. For example, we have ubuntu intel system and installed the below library
+```
+conda install -c conda-forge xorg-x11-server-xvfb-conda-x86_64
+```
+5. Run xvfb-run your-command
+```
+xvfb-run python test.py
+```
+
 
 ## How to change the basic config
 

@@ -11,6 +11,7 @@ from langgraph.graph import StateGraph, START, END
 from web_operator.utils import logger_helper
 from langgraph.checkpoint.memory import MemorySaver
 
+
 class Supervisor:
     def __init__(self, token_required_agents:List[str]):
         self.config = self.__get_config()
@@ -85,7 +86,8 @@ class Supervisor:
             },
             'BROWSER_AGENT': {
                 'recursion_limit': 10,
-                'verbose': False
+                'verbose': False,
+                'headless': True
             },
             'SUPERVISOR':{
                 'recursion_limit': 10
