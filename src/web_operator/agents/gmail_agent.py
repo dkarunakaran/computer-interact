@@ -30,4 +30,4 @@ class GmailAgent:
         """
         self.prompt = hub.pull("dkarunakaran/openai-tools-agent-with-context") 
         agent = create_openai_tools_agent(llm, tools, self.prompt)
-        self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=self.cfg['GMAIL_AGENT']['verbose'])
+        self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=self.cfg['gmail_agent']['verbose'])

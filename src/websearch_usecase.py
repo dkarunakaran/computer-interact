@@ -8,8 +8,10 @@ prompt2 = """
 
 prompt3 ="""
 
-        Go to booking.com, if there is a signin page, close it always and continue. find the cheapest stay around sydney CBD, starting from 29th Jan to 30th Jan. 
+        Go to booking.com, if there is a signin page, close it and continue. find the cheapest stay around sydney CBD, starting from 29th Jan to 30th Jan. Give me name of the hotel and price. 
 """
+
+prompt4="Go to Reddit, search for 'browser-use', click on the first post and return the first comment."
 
 load_dotenv()  
 token_required_agents = []
@@ -17,6 +19,7 @@ supervisor = Supervisor(token_required_agents=token_required_agents)
 # Make sure you change the config before the configure method
 supervisor.config['BROWSER_AGENT']['headless'] = False
 supervisor.config['BROWSER_AGENT']['verbose'] = True
+supervisor.config['GMAIL_AGENT']['verbose'] = True
 
 # Configure the supervisor for automation task
 supervisor.configure()

@@ -1,8 +1,10 @@
 # Web-operator
 
-A library for automating web tasks
+A library for automating web tasks, built extensively using LangGraph and other tools.
 
-To learn more about the library, check out the [documentation 📕]
+While it leverages browser capabilities, its current functionality is focused on specific web tasks. It's not designed for arbitrary web automation.
+
+This library excels at tasks solvable by its defined set of agents.
 
 ## Installation
 
@@ -152,7 +154,7 @@ xvfb-run python test.py
 print(supervisor.config)
 
 #Typical output
-{'debug': False, 'GOOGLE_API': {'scopes': ['https://mail.google.com/', 'https://www.googleapis.com/auth/tasks', 'https://www.googleapis.com/auth/drive']}, 'GMAIL_AGENT': {'recursion_limit': 10, 'verbose': False}, 'BROWSER_AGENT': {'recursion_limit': 10, 'verbose': False}, 'SUPERVISOR': {'recursion_limit': 10}}
+{'debug': False, 'GOOGLE_API': {'scopes': ['https://mail.google.com/', 'https://www.googleapis.com/auth/tasks', 'https://www.googleapis.com/auth/drive']}, 'gmail_agent': {'recursion_limit': 10, 'verbose': False}, 'browser_agent': {'recursion_limit': 10, 'verbose': False}, 'supervisor': {'recursion_limit': 10}}
 
 ```
 2. modify
@@ -161,7 +163,7 @@ supervisor.config["debug"] = True
 print(supervisor.config)
 
 #Typical output
-{'debug': True, 'GOOGLE_API': {'scopes': ['https://mail.google.com/', 'https://www.googleapis.com/auth/tasks', 'https://www.googleapis.com/auth/drive']}, 'GMAIL_AGENT': {'recursion_limit': 10, 'verbose': False}, 'BROWSER_AGENT': {'recursion_limit': 10, 'verbose': False}, 'SUPERVISOR': {'recursion_limit': 10}}
+{'debug': True, 'GOOGLE_API': {'scopes': ['https://mail.google.com/', 'https://www.googleapis.com/auth/tasks', 'https://www.googleapis.com/auth/drive']}, 'gmail_agent': {'recursion_limit': 10, 'verbose': False}, 'browser_agent': {'recursion_limit': 10, 'verbose': False}, 'supervisor': {'recursion_limit': 10}}
 
 ```
 3. Sample full code
@@ -198,4 +200,9 @@ GOOGLE_API_TOKEN_LOC=path to token.json
 * Enables Gmail operations.
 * Not active by default.
 * Requires a Google API token.
-* Must be specified in token_required_agents when initializing the supervisor.
+* Must be specified in required_agents when initializing the supervisor.
+3. **arxiv_agent**:
+* Searches the Arxiv paper based on the user input.
+* Not active by default.
+* No API token is required.
+* Must be specified in required_agents when initializing the supervisor.
