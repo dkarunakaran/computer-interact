@@ -12,7 +12,7 @@ import os
 class GmailAgent:
     def __init__(self, cfg):
         self.cfg = cfg
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
+        llm = ChatOpenAI(model=self.cfg['model'], temperature=0) 
         creds = get_gmail_credentials(
             token_file=os.environ.get("GOOGLE_API_TOKEN_LOC"),
             scopes=["https://mail.google.com/"],
@@ -30,4 +30,4 @@ class GmailAgent:
         """
         self.prompt = hub.pull("dkarunakaran/openai-tools-agent-with-context") 
         agent = create_openai_tools_agent(llm, tools, self.prompt)
-        self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=self.cfg['GMAIL_AGENT']['verbose'])
+        self.agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=self.cfg['gmail_agent']['verbose'])
