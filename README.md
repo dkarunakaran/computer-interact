@@ -37,7 +37,7 @@ This library excels at tasks solvable by its defined set of agents.
     ```
     b. Create a .env file in your project's root directory with the following structure:
     ```
-    OPENAI_API_KEY=your_openai_api_key # Best model is gpt-4o
+    OPENAI_API_KEY=your_openai_api_key
 
     # Only add below config if you want to use the GOOGLE services
     GOOGLE_API_CREDS_LOC=your credentials.json file location
@@ -182,6 +182,12 @@ supervisor.run(query=prompt2)
 
 # Output
 print(supervisor.get_results())
+```
+
+## Best OPENAI model
+We tested with different GPT models, and GPT-4 is the best among them. By default, GPT-4o-mini is used. To change the model, follow the code below:
+```
+supervisor.config['model'] = 'gpt-4o'
 ```
 
 ## Content of .env file
