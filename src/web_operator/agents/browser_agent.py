@@ -1,6 +1,7 @@
 from langchain import hub
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_openai import ChatOpenAI
+#from langchain_together import ChatTogether
 import os
 #from langchain_community.agent_toolkits import PlayWrightBrowserToolkit #This is the replaced import
 from web_operator.agent_tools.custom_playwright_toolkit import PlayWrightBrowserToolkit
@@ -10,7 +11,8 @@ from langchain_community.tools.playwright.utils import create_sync_playwright_br
 class BrowserAgent:
     def __init__(self, cfg):
         self.cfg = cfg
-        llm = ChatOpenAI(model=self.cfg['browser_agent']['model'], temperature=0) 
+        llm = ChatOpenAI(model=self.cfg['model'], temperature=0) 
+        #llm = ChatTogether(model="meta-llama/Llama-3.3-70B-Instruct-Turbo")
         sync_browser = create_sync_playwright_browser(headless=self.cfg['browser_agent']['headless'])
         playwright_toolkit = PlayWrightBrowserToolkit.from_browser(sync_browser=sync_browser)
         tools = playwright_toolkit.get_tools()

@@ -12,7 +12,7 @@ import os
 class GmailAgent:
     def __init__(self, cfg):
         self.cfg = cfg
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0) 
+        llm = ChatOpenAI(model=self.cfg['model'], temperature=0) 
         creds = get_gmail_credentials(
             token_file=os.environ.get("GOOGLE_API_TOKEN_LOC"),
             scopes=["https://mail.google.com/"],

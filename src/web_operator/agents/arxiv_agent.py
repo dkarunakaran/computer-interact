@@ -1,11 +1,13 @@
 from langchain import hub
 from langchain.agents import AgentExecutor, create_openai_tools_agent, load_tools
 from langchain_openai import ChatOpenAI
+#from langchain_together import ChatTogether
 
 class ArxivAgent:
     def __init__(self, cfg):
         self.cfg = cfg
-        llm = ChatOpenAI(model=self.cfg['arxiv_agent']['model'], temperature=0) 
+        llm = ChatOpenAI(model=self.cfg['model'], temperature=0) 
+        #llm = ChatTogether(model="meta-llama/Llama-3.3-70B-Instruct-Turbo")
         tools = load_tools(
             ["arxiv"],
         )

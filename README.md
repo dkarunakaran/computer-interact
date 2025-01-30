@@ -37,7 +37,7 @@ This library excels at tasks solvable by its defined set of agents.
     ```
     b. Create a .env file in your project's root directory with the following structure:
     ```
-    OPENAI_API_KEY=your_openai_api_key
+    OPENAI_API_KEY=your_openai_api_key # Best model is gpt-4o
 
     # Only add below config if you want to use the GOOGLE services
     GOOGLE_API_CREDS_LOC=your credentials.json file location
@@ -60,11 +60,11 @@ from web_operator.supervisor import Supervisor
 from dotenv import load_dotenv
 ```
 2. Initializing the Supervisor: 
-The Supervisor class manages different web agents. We need to specify any agents that required tokens. All others are not needed to mention. 
+The Supervisor class manages different web agents. We need to specify agents that will be used.
 ```
 load_dotenv()  # Load environment variables
-token_required_agents = [] 
-supervisor = Supervisor(token_required_agents=token_required_agents)
+required_agents = [] # if you don't specify any agents, browser agent only works.
+supervisor = Supervisor(required_agents=required_agents)
 
 # Configure the supervisor for automation task
 supervisor.configure()
@@ -81,7 +81,7 @@ supervisor.run(query=prompt)
 print(supervisor.get_results())
 ```
 
-## Basic Usage with token required agents like gmail
+## Basic Usage with required agents list
 1. Make sure .env file has the location of the json file for authentication Google APIs (use this document that explain how can you get these files in the first place)
 2. Initialize the supervisor and other required librarires
 ```
@@ -89,8 +89,8 @@ from web_operator.supervisor import Supervisor
 from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables
-token_required_agents = ['gmail_agent']  # Specify token required agents
-supervisor = Supervisor(token_required_agents=token_required_agents)
+required_agents = ['gmail_agent']  # Specify token required agents
+supervisor = Supervisor(required_agents=required_agents)
 
 # Configure the supervisor for automation task
 supervisor.configure()
@@ -169,8 +169,8 @@ print(supervisor.config)
 3. Sample full code
 ```
 load_dotenv()  
-token_required_agents = []
-supervisor = Supervisor(token_required_agents=token_required_agents)
+required_agents = []
+supervisor = Supervisor(required_agents=required_agents)
 
 # Make sure you change the config before the configure method
 supervisor.config['GMAIL_AGENT']['verbose'] = True # verbose for displaying detailed logs of agents' tasks

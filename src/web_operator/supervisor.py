@@ -88,6 +88,7 @@ class Supervisor:
         """
         cfg = {
             'debug': False,
+            'model': 'gpt-4o-mini', #'gpt-4o'
             'GOOGLE_API':{
                 'scopes':['https://mail.google.com/']
             },
@@ -99,12 +100,10 @@ class Supervisor:
                 'recursion_limit': 10,
                 'verbose': False,
                 'headless': True,
-                'model': 'gpt-4o-mini'
             },
             'arxiv_agent': {
                 'recursion_limit': 10,
                 'verbose': False,
-                'model': 'gpt-4o-mini'
             },
             'supervisor':{
                 'recursion_limit': 10
@@ -118,7 +117,7 @@ class Supervisor:
     def __router(self, state) -> Literal["gmail_agent", "browser_agent", "arxiv_agent", "__end__"]:
             
         # Sleep to avoid hitting QPM limits
-        last_result_text = state["message"][-1].content
+        last_result_text = state["supervisor_msg"][-1].content
 
         if "gmail_agent" in last_result_text:
             return "gmail_agent"
@@ -145,7 +144,8 @@ class Supervisor:
         input_message = state["message"][-1]
         result = self.__supervisor_chain.invoke({'system': system_message, 'input': input_message})
         self.__logger.debug(f"Supervisor result:{result}")
-        return {'message': [result], 'sender': ['supervisor']}
+        print(result)
+        return {'supervisor_msg': [result], 'sender': ['supervisor']}
 
     def __gmail_agent_node(self, state: AgentState):
         if not 'gmail_agent' in self.required_agents:
@@ -156,7 +156,7 @@ class Supervisor:
             raise KeyError("Local file path of token.json is miising, please provide it in .env file.") 
         self.__logger.info("Gmail agent node started")
         context = state["message"][0]
-        input = state["message"][-2]
+        input = state["message"][-1]
         result = self.__gmail_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.__gmail_agent.context+context,"input":input}, {"recursion_limit": self.config['gmail_agent']['recursion_limit']})
         self.__logger.debug(f"Gmail agent result:{result}")
         return {'message': [result['output']], 'sender': ['gmail_agent']}
@@ -165,7 +165,7 @@ class Supervisor:
     def __browser_agent_node(self, state: AgentState):
         self.__logger.info("Browser agent node started")
         context = state["message"][0]
-        input = state["message"][-2]
+        input = state["message"][-1]
         result = self.__browser_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.__browser_agent.context+context,"input": input}, {"recursion_limit": self.config['browser_agent']['recursion_limit']})
         self.__logger.debug(f"Browser agent result:{result}")
         return {'message': [result['output']], 'sender': ['browser_agent']}
@@ -173,7 +173,7 @@ class Supervisor:
     def __arxiv_agent_node(self, state: AgentState):
         self.__logger.info("Arxiv agent node started")
         context = state["message"][0]
-        input = state["message"][-2]
+        input = state["message"][-1]
         result = self.__arxiv_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.__arxiv_agent.context+context,"input":input}, {"recursion_limit": self.config['arxiv_agent']['recursion_limit']})
         self.__logger.debug(f"arxiv agent result:{result}")
         return {'message': [result['output']], 'sender': ['arxiv_agent']}
