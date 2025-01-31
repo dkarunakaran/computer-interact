@@ -39,12 +39,12 @@ class Supervisor:
         workers.append('none')
         system_prompt = (
             "You are a supervisor tasked with managing a conversation between the"
-            f" following workers: {','.join(workers)}."
+            f" following agents: {','.join(workers)}."
             " Given the following user request,"
-            " respond with the worker to act next. Each worker will perform a"
-            " task and respond with their results and status. When finished,"
-            " respond with FINISH."
-            "If you can't find a suitable worker, then use 'none' worker."
+            " respond with the agent to act next. Each agent will perform a task and respond with their results and nexts step." 
+            " If there is next step use that to guide the next agent."
+            " Otherwuse, use your guess to guide the next agent."
+            " If you can't find a suitable agent, then use 'none' agent."
         )
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_prompt),
@@ -88,7 +88,8 @@ class Supervisor:
         """
         cfg = {
             'debug': False,
-            'model': 'gpt-4o-mini', #'gpt-4o'
+            'model': 'gpt-4o-mini',
+            #'model': 'gpt-4o',
             'GOOGLE_API':{
                 'scopes':['https://mail.google.com/']
             },

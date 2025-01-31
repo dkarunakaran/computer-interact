@@ -25,8 +25,9 @@ prompt3 ="""
 """
 
 prompt4 ="""
-        get me 10 papers that touches the insurance usecase of connected vehicles. then summarise all of them together. Once you done that return FINISH"
+        get all papers with title, abstract, and url from arxiv that touches the topic called insurance usecase of connected vehicles. Make sure you tried different keywords related to the topic. Then naviagte to each link and summarise the content. Once you done that return FINISH"
 """
+
 
 load_dotenv()  
 required_agents = ['gmail_agent', 'arxiv_agent']
@@ -38,7 +39,7 @@ supervisor.config['browser_agent']['verbose'] = True
 
 # Configure the supervisor for automation task
 supervisor.configure()
-supervisor.run(query=prompt4)
+supervisor.run(query=prompt5)
 print(supervisor.get_results())
 
 
