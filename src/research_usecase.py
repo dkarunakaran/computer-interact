@@ -18,7 +18,7 @@ prompt2 = """
 """
 
 prompt3 = """
-        get all papers with title, abstract, and url from arxiv that touches the topic called insurance usecase of connected vehicles. 
+        get all papers with title, abstract, and url from arxiv and pubmed that touches the topic called insurance usecase of connected vehicles. 
         Make sure you tried different keywords related to the topic. 
         Go to https://scholar.google.com.au and search for 'insurance usecases of connected vehicles'.
         Get the results with title and url.
@@ -28,16 +28,16 @@ prompt3 = """
 """
 
 load_dotenv()  
-required_agents = ['arxiv_agent']
+required_agents = ['research_agent']
 supervisor = Supervisor(required_agents=required_agents)
 # Make sure you change the config before the configure method
 supervisor.config['browser_agent']['headless'] = False
-supervisor.config['arxiv_agent']['verbose'] = True
+supervisor.config['research_agent']['verbose'] = True
 supervisor.config['browser_agent']['verbose'] = True
 
 # Configure the supervisor for automation task
 supervisor.configure()
-supervisor.run(query=prompt3)
+supervisor.run(query=prompt2)
 print(supervisor.get_results())
 
 

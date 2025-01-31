@@ -6,7 +6,7 @@ import yaml
 from web_operator.agents.gmail_agent import GmailAgent
 from web_operator.agents.browser_agent import BrowserAgent
 from web_operator.agents.agent_state import AgentState
-from web_operator.agents.arxiv_agent import ArxivAgent
+from web_operator.agents.research_agent import ResearchAgent
 from typing import Literal, List
 from langgraph.graph import StateGraph, START, END
 from web_operator.utils import logger_helper
@@ -29,40 +29,42 @@ class Supervisor:
         # Specify the liat of agents
         workers = []
         if 'gmail_agent' in self.required_agents:
-            self.__gmail_agent = GmailAgent(cfg=self.config)
+            self.gmail_agent = GmailAgent(cfg=self.config)
             workers.append('gmail_agent')
-        if 'arxiv_agent' in self.required_agents:
-            self.__arxiv_agent = ArxivAgent(cfg=self.config)
-            workers.append('arxiv_agent')
+        if 'research_agent' in self.required_agents:
+            self.research_agent = ResearchAgent(cfg=self.config)
+            workers.append('research_agent')
         workers.append('browser_agent')
-        self.__browser_agent = BrowserAgent(cfg=self.config)
+        self.browser_agent = BrowserAgent(cfg=self.config)
         workers.append('none')
-        system_prompt = (
+        self.system_prompt = (
             "You are a supervisor tasked with managing a conversation between the"
             f" following agents: {','.join(workers)}."
             " Given the following user request,"
             " respond with the agent to act next. Each agent will perform a task and respond with their results and nexts step." 
             " If there is next step use that to guide the next agent."
-            " Otherwuse, use your guess to guide the next agent."
+            " Otherwise, use your guess to guide the next agent."
             " If you can't find a suitable agent, then use 'none' agent."
+            "If the user ask about the paper or research, then first use research_agent."
+            "if the user talk about navigating to a website or search using browser, then use browser_agent."
         )
         prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
+            ("system", self.system_prompt),
             ("human", "{input}")
         ])
         self.__supervisor_chain = prompt | llm
 
         # Create langgraph workflow for the agents 
         workflow = StateGraph(AgentState)
-        workflow.add_node("Supervisor", self.__supervisor_node)
-        workflow.add_node("GmailAgent", self.__gmail_agent_node)
-        workflow.add_node("BrowserAgent", self.__browser_agent_node)
-        workflow.add_node("ArxivAgent", self.__arxiv_agent_node)
+        workflow.add_node("Supervisor", self.supervisor_node)
+        workflow.add_node("GmailAgent", self.gmail_agent_node)
+        workflow.add_node("BrowserAgent", self.browser_agent_node)
+        workflow.add_node("ResearchAgent", self.research_agent_node)
         workflow.add_edge(START, "Supervisor")
         workflow.add_conditional_edges(
             "Supervisor",
             self.__router,
-            {"gmail_agent": "GmailAgent", "browser_agent":"BrowserAgent", "arxiv_agent":"ArxivAgent", "__end__": END},
+            {"gmail_agent": "GmailAgent", "browser_agent":"BrowserAgent", "research_agent":"ResearchAgent", "__end__": END},
         )
         workflow.add_edge(
             "GmailAgent",
@@ -73,7 +75,7 @@ class Supervisor:
             "Supervisor",
         )
         workflow.add_edge(
-            "ArxivAgent",
+            "ResearchAgent",
             "Supervisor",
         )
 
@@ -102,7 +104,7 @@ class Supervisor:
                 'verbose': False,
                 'headless': True,
             },
-            'arxiv_agent': {
+            'research_agent': {
                 'recursion_limit': 10,
                 'verbose': False,
             },
@@ -115,7 +117,7 @@ class Supervisor:
 
 
     # This is the router
-    def __router(self, state) -> Literal["gmail_agent", "browser_agent", "arxiv_agent", "__end__"]:
+    def __router(self, state) -> Literal["gmail_agent", "browser_agent", "research_agent", "__end__"]:
             
         # Sleep to avoid hitting QPM limits
         last_result_text = state["supervisor_msg"][-1].content
@@ -126,8 +128,8 @@ class Supervisor:
         if "browser_agent" in last_result_text:
             return "browser_agent"
         
-        if "arxiv_agent" in last_result_text:
-            return "arxiv_agent"
+        if "research_agent" in last_result_text:
+            return "research_agent"
 
         if "none" in last_result_text:
             # Any agent decided the work is done
@@ -139,7 +141,7 @@ class Supervisor:
         
         return "Supervisor"
 
-    def __supervisor_node(self, state: AgentState):
+    def supervisor_node(self, state: AgentState):
         self.__logger.info("Supervisor node started")
         system_message = state["message"][:-1]
         input_message = state["message"][-1]
@@ -148,7 +150,7 @@ class Supervisor:
         print(result)
         return {'supervisor_msg': [result], 'sender': ['supervisor']}
 
-    def __gmail_agent_node(self, state: AgentState):
+    def gmail_agent_node(self, state: AgentState):
         if not 'gmail_agent' in self.required_agents:
             raise KeyError("gmail_agent is not activated, add that to the required_agents varible.") 
         if not os.environ.get("GOOGLE_API_CREDS_LOC"):
@@ -158,26 +160,26 @@ class Supervisor:
         self.__logger.info("Gmail agent node started")
         context = state["message"][0]
         input = state["message"][-1]
-        result = self.__gmail_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.__gmail_agent.context+context,"input":input}, {"recursion_limit": self.config['gmail_agent']['recursion_limit']})
+        result = self.gmail_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.gmail_agent.context+context,"input":input}, {"recursion_limit": self.config['gmail_agent']['recursion_limit']})
         self.__logger.debug(f"Gmail agent result:{result}")
         return {'message': [result['output']], 'sender': ['gmail_agent']}
     
     
-    def __browser_agent_node(self, state: AgentState):
+    def browser_agent_node(self, state: AgentState):
         self.__logger.info("Browser agent node started")
         context = state["message"][0]
         input = state["message"][-1]
-        result = self.__browser_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.__browser_agent.context+context,"input": input}, {"recursion_limit": self.config['browser_agent']['recursion_limit']})
+        result = self.browser_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.browser_agent.context+context,"input": input}, {"recursion_limit": self.config['browser_agent']['recursion_limit']})
         self.__logger.debug(f"Browser agent result:{result}")
         return {'message': [result['output']], 'sender': ['browser_agent']}
     
-    def __arxiv_agent_node(self, state: AgentState):
-        self.__logger.info("Arxiv agent node started")
+    def research_agent_node(self, state: AgentState):
+        self.__logger.info("Research agent node started")
         context = state["message"][0]
         input = state["message"][-1]
-        result = self.__arxiv_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.__arxiv_agent.context+context,"input":input}, {"recursion_limit": self.config['arxiv_agent']['recursion_limit']})
-        self.__logger.debug(f"arxiv agent result:{result}")
-        return {'message': [result['output']], 'sender': ['arxiv_agent']}
+        result = self.research_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.research_agent.context+context,"input":input}, {"recursion_limit": self.config['research_agent']['recursion_limit']})
+        self.__logger.debug(f"Research agent result:{result}")
+        return {'message': [result['output']], 'sender': ['research_agent']}
     
     def run(self, query=None):
         initial_state = AgentState()
