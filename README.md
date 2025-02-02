@@ -215,7 +215,7 @@ GOOGLE_API_TOKEN_LOC=path to token.json
 
 ## Usecases
 
-1. **Academic research paper usecase**
+1. **Academic research papers search**
 
 ```
 #**************************************READ*************************************************
