@@ -7,6 +7,7 @@ from web_operator.agents.gmail_agent import GmailAgent
 from web_operator.agents.browser_agent import BrowserAgent
 from web_operator.agents.agent_state import AgentState
 from web_operator.agents.research_agent import ResearchAgent
+from web_operator.agents.sql_agent import SQLiteAgent
 from typing import Literal, List
 from langgraph.graph import StateGraph, START, END
 from web_operator.utils import logger_helper
@@ -34,6 +35,9 @@ class Supervisor:
         if 'research_agent' in self.required_agents:
             self.research_agent = ResearchAgent(cfg=self.config)
             workers.append('research_agent')
+        if 'sqlite_agent' in self.required_agents:
+            self.sqlite_agent = SQLiteAgent(cfg=self.config)
+            workers.append('sqlite_agent')
         workers.append('browser_agent')
         self.browser_agent = BrowserAgent(cfg=self.config)
         workers.append('none')
@@ -48,6 +52,7 @@ class Supervisor:
             "If the user ask about the paper or research, then first use research_agent."
             "if the user talk about navigating to a website or search using browser, then use browser_agent."
             "if the user talk about gmail, then use gmail_agent."
+            "if the user talk about SQL database operation, then use sqlite_agent."
         )
         prompt = ChatPromptTemplate.from_messages([
             ("system", self.system_prompt),
@@ -61,11 +66,12 @@ class Supervisor:
         workflow.add_node("GmailAgent", self.gmail_agent_node)
         workflow.add_node("BrowserAgent", self.browser_agent_node)
         workflow.add_node("ResearchAgent", self.research_agent_node)
+        workflow.add_node("SQLiteAgent", self.sqlite_agent_node)
         workflow.add_edge(START, "Supervisor")
         workflow.add_conditional_edges(
             "Supervisor",
             self.__router,
-            {"gmail_agent": "GmailAgent", "browser_agent":"BrowserAgent", "research_agent":"ResearchAgent", "__end__": END},
+            {"gmail_agent": "GmailAgent", "browser_agent":"BrowserAgent", "research_agent":"ResearchAgent", "sqlite_agent":"SQLiteAgent", "__end__": END},
         )
         workflow.add_edge(
             "GmailAgent",
@@ -77,6 +83,10 @@ class Supervisor:
         )
         workflow.add_edge(
             "ResearchAgent",
+            "Supervisor",
+        )
+        workflow.add_edge(
+            "SQLiteAgent",
             "Supervisor",
         )
 
@@ -109,6 +119,10 @@ class Supervisor:
                 'recursion_limit': 10,
                 'verbose': False,
             },
+            'sqlite_agent': {
+                'recursion_limit': 10,
+                'verbose': False,
+            },
             'supervisor':{
                 'recursion_limit': 20
             }
@@ -118,7 +132,7 @@ class Supervisor:
 
 
     # This is the router
-    def __router(self, state) -> Literal["gmail_agent", "browser_agent", "research_agent", "__end__"]:
+    def __router(self, state) -> Literal["gmail_agent", "browser_agent", "research_agent", "sqlite_agent", "__end__"]:
             
         # Sleep to avoid hitting QPM limits
         last_result_text = state["supervisor_msg"][-1].content
@@ -131,6 +145,9 @@ class Supervisor:
         
         if "research_agent" in last_result_text:
             return "research_agent"
+        
+        if "sqlite_agent" in last_result_text:
+            return "sqlite_agent"
 
         if "none" in last_result_text:
             # Any agent decided the work is done
@@ -180,6 +197,14 @@ class Supervisor:
         input = state["message"][-1]
         result = self.research_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.research_agent.context+context,"input":input}, {"recursion_limit": self.config['research_agent']['recursion_limit']})
         self.__logger.debug(f"Research agent result:{result}")
+        return {'message': [result['output']], 'sender': ['research_agent']}
+    
+    def sqlite_agent_node(self, state: AgentState):
+        self.__logger.info("SQLite agent node started")
+        context = state["message"][0]
+        input = state["message"][-1]
+        result = self.sqlite_agent.agent_executor.invoke({"chat_history":[], "agent_scratchpad":"", "context": self.sqlite_agent.context+context,"input":input}, {"recursion_limit": self.config['research_agent']['recursion_limit']})
+        self.__logger.debug(f"SQLite agent result:{result}")
         return {'message': [result['output']], 'sender': ['research_agent']}
     
     def run(self, query=None):
