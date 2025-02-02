@@ -218,6 +218,9 @@ GOOGLE_API_TOKEN_LOC=path to token.json
 1. **Academic research papers search**
 
 ```
+from web_operator.supervisor import Supervisor
+from dotenv import load_dotenv
+
 #**************************************READ*************************************************
 # This use case shows how to get the title and link of the papers related to the user query. 
 # Currently, it looks for the kewords in three databases: arxiv, pubmed, and google scholar.

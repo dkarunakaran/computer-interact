@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "web_operator"
-version = "0.1.6"
+version = "0.1.7"
 description = "A library for automating web tasks"
 authors = [
     { name = "Dhanoop Karunakaran" }
