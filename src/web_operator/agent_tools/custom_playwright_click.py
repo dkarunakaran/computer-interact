@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional, Type
+import time
 
 from langchain_core.callbacks import (
     AsyncCallbackManagerForToolRun,
@@ -32,7 +33,7 @@ class ClickTool(BaseBrowserTool):  # type: ignore[override, override, override]
     """Whether to consider only visible elements."""
     playwright_strict: bool = False
     """Whether to employ Playwright's strict mode when clicking on elements."""
-    playwright_timeout: float = 1_000
+    playwright_timeout: float = 5_000
     """Timeout (in ms) for Playwright to wait for element to be ready."""
 
     def _selector_effective(self, selector: str) -> str:
@@ -54,6 +55,7 @@ class ClickTool(BaseBrowserTool):  # type: ignore[override, override, override]
         from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
         try:
+            time.sleep(1)
             page.click(
                 selector_effective,
                 strict=self.playwright_strict,
@@ -61,6 +63,8 @@ class ClickTool(BaseBrowserTool):  # type: ignore[override, override, override]
             )
             # Added by Dhanoop
             page.wait_for_load_state("networkidle") 
+            page.wait_for_timeout(10000)
+            time.sleep(1)
         except PlaywrightTimeoutError:
             return f"Unable to click on element '{selector}'"
         return f"Clicked element '{selector}'"

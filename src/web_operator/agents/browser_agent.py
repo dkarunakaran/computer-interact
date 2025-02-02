@@ -27,7 +27,7 @@ class BrowserAgent:
             If the website is google.com, look for textarea html element instead of input element for filling.
             if the website is duckduckgo.com, look for button element with aria-label with 'Search' for click and input element with id 'searchbox_input' for filling the text.
             if the website is scholar.google.com, look for button element for submitting and input element with type=text for filling the text.
-            if the website is scholar.google.com, you can naviagte to next page by clicking with the a element with span with class='gs_ico_nav_next' element as the value. Execut this only if user wants to do it.  
+            if the website is scholar.google.com, you can naviagte to next page by clicking with the a element that has span element with class='gs_ico_nav_next'. Execute this only if user wants to do it.
         """
         #DO NOT ASK for further assistance unless user specified.
         #DO NOR REPEAT the same search.

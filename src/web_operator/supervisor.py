@@ -47,6 +47,7 @@ class Supervisor:
             " If you can't find a suitable agent, then use 'none' agent."
             "If the user ask about the paper or research, then first use research_agent."
             "if the user talk about navigating to a website or search using browser, then use browser_agent."
+            "if the user talk about gmail, then use gmail_agent."
         )
         prompt = ChatPromptTemplate.from_messages([
             ("system", self.system_prompt),
@@ -109,7 +110,7 @@ class Supervisor:
                 'verbose': False,
             },
             'supervisor':{
-                'recursion_limit': 10
+                'recursion_limit': 20
             }
         }
 
@@ -190,6 +191,15 @@ class Supervisor:
 
     def get_results(self):
         return self.graph.get_state(self.graph_config).values["message"]
+    
+    def prompt_by_usecase(self, usecase, keyword):
+        if usecase == 'research':
+            prompt = (
+            f"get all papers from arxiv and pubmed that touches the topic '{keyword}'. Make sure you tried different keywords related to the topic. Get the results with title and url."
+            f"Then, go to https://scholar.google.com.au and search for '{keyword}'. Get the results with title and url. Naviagate to up to three pages as well."
+            "Then give me a comibned result. once you done it, return FINISH"
+            )
+        return prompt
 
         
 

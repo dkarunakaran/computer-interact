@@ -39,7 +39,7 @@ supervisor.config['browser_agent']['verbose'] = True
 
 # Configure the supervisor for automation task
 supervisor.configure()
-supervisor.run(query=prompt5)
+supervisor.run(query=prompt4)
 print(supervisor.get_results())
 
 
