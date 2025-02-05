@@ -24,14 +24,14 @@ computeruse_tools = [
     {
         "type": "function",
         "function": {
-            "name": "type",
-            "description": "type the text on the screen",
+            "name": "type_url",
+            "description": "type the url on the address bar of the browser",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "A description of what you want to type"
+                        "description": "A description of what you want to type in the address bar of the browser"
                     }
                 },
                 "required": [
@@ -52,7 +52,7 @@ computeruse_tools = [
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "A description of whick key you want to press"
+                        "description": "Name of the key you want to press"
                     }
                 },
                 "required": [

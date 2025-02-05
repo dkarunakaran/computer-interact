@@ -21,7 +21,7 @@ client = OpenAI(
 )
 computerNode = ComputerUseNode()
 
-query1 = "Open the firefox webbrowser and naviagate to scholar.google.com"
+query1 = "Open a web browser and naviagate to scholar.google.com"
 query2 = "Search for 'OpenAI' in the search bar"
 query3 = "go to gmail using google API and read the email titles 'test'"
 query4 = "Nothing"
