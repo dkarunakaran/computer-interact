@@ -6,12 +6,15 @@ import base64
 import json
 import time
 import os
-from PIL import Image as PILImage
+from PIL import Image
+import requests
 from gradio_client import Client, handle_file
 import re
 from web_operator.nodes.computer_use_node import ComputerUseNode
 from web_operator.nodes import router_node
-
+from transformers import AutoProcessor, AutoModelForImageTextToText, AutoTokenizer, BitsAndBytesConfig
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, TaskType
+import torch
 
 load_dotenv()
 
@@ -55,31 +58,12 @@ node_selected = completion.choices[0].message.tool_calls
 
 if node_selected:
     node_name = node_selected[0].function.name
-    if node_name == 'computer_use_node':
-        computerNode.run(query=query)
+    #pyautogui.screenshot('my_screenshot.png')
+    with open('my_screenshot.png', "rb") as f:
+        base64_screenshot = base64.b64encode(f.read()).decode("utf-8")
 
 else:
     print("No tools are selected")
     
     
 exit()
-
-
-
-
-
-OSATLAS_HUGGINGFACE_SOURCE = "maxiw/OS-ATLAS"
-OSATLAS_HUGGINGFACE_MODEL = "OS-Copilot/OS-Atlas-Base-7B"
-OSATLAS_HUGGINGFACE_API = "/run_example"
-
-huggingface_client = Client(OSATLAS_HUGGINGFACE_SOURCE)
-
-pyautogui.screenshot('my_screenshot.png')
-
-result = huggingface_client.predict(
-    image=handle_file("my_screenshot.png"),
-    text_input= "Web browser" + "\nReturn the response in the form of a bbox",
-    model_id=OSATLAS_HUGGINGFACE_MODEL,
-    api_name=OSATLAS_HUGGINGFACE_API,
-)
-print(result)
