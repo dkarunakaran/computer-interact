@@ -61,6 +61,25 @@ if node_selected:
     #pyautogui.screenshot('my_screenshot.png')
     with open('my_screenshot.png', "rb") as f:
         base64_screenshot = base64.b64encode(f.read()).decode("utf-8")
+    
+    client = OpenAI(
+        base_url="http://localhost:1234/v1", 
+        api_key="lm-studio"
+    )
+
+    completion = client.chat.completions.create(
+        model="bytedance-research.ui-tars-72b-dpo",
+        messages=[
+            {"role": "user", "content": [
+                {"type":"image_url", "image_url":{"url": f"data:image/png;base64,{base64_screenshot}"}},
+                {"type":"text", "text":query}
+            ]}
+        ]
+    )
+
+    print(completion)
+
+    
 
 else:
     print("No tools are selected")

@@ -2,16 +2,27 @@
 from openai import OpenAI
 import pyautogui
 import base64
+import torch
+from transformers import Qwen2_5_VLProcessor, Qwen2_5_VLForConditionalGeneration
+from PIL import Image
+from qwen_agent.llm.fncall_prompts.nous_fncall_prompt import (
+    NousFnCallPrompt,
+    Message,
+    ContentItem,
+)
+from transformers.models.qwen2_5_vl.image_processing_qwen2_5_vl import smart_resize
+from web_operator.nodes.tools import ComputerUse
+from web_operator.utils import draw_point
 import json
-import time
-import os
-import re
-from gradio_client import Client, handle_file
-from web_operator.nodes.tools import computeruse_tools
+
+# Ref: https://github.com/QwenLM/Qwen2.5-VL/blob/main/cookbooks/computer_use.ipynb
 
 
 class ComputerUseNode:
     def __init__(self):
+        model_path = "Qwen/Qwen2.5-VL-7B-Instruct"
+        self.processor = Qwen2_5_VLProcessor.from_pretrained(model_path)
+        self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_path, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2",device_map="auto")
         self.schema = """
             {
                 "type": "object",
@@ -22,111 +33,115 @@ class ComputerUseNode:
                 "required": ["action", "target"]
             }
         """
-
-        self.llm = OpenAI(
-            api_key=os.environ.get("GROQ_API_KEY"),
-            base_url="https://api.groq.com/openai/v1"
+        self.steps_llm = OpenAI(
+            base_url = 'http://localhost:11434/v1',
+            api_key='ollama', # required, but unused
         )
 
-        OSATLAS_HUGGINGFACE_SOURCE = "maxiw/OS-ATLAS"
-        self.OSATLAS_HUGGINGFACE_MODEL = "OS-Copilot/OS-Atlas-Base-7B"
-        self.OSATLAS_HUGGINGFACE_API = "/run_example"
+        
+    def run(self, user_query=None):
+        
+        steps = self.get_steps(user_query=user_query)
 
-        self.huggingface_client = Client(OSATLAS_HUGGINGFACE_SOURCE)
-
-    def run(self, query):
-        pyautogui.screenshot('my_screenshot.png')
-        with open('my_screenshot.png', "rb") as f:
-           base64_screenshot = base64.b64encode(f.read()).decode("utf-8")
-
-        completion = self.llm.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": """
-                You are a computer use assistant and has the capability do the browser automations.
-                Create a step by step approach a human would action it to acheive this in GUI(linux). 
-                The GUI already have the browser icon. Do not add wait, launch, and focus actions. 
-                If you need to type in a location, we need to locate.
-                Ouptput in json format. Make sure you have 'steps' key in the json object.
-                """
-                },
-                {"role": "user", "content": [{"type":"text", "text":query}]}
-            ],
-            response_format={ "type": "json_object", "schema" : self.schema }
-
-        )
-        steps = json.loads(completion.choices[0].message.content)
         print(steps)
-        print("Wait for 5 seconds for next action")
-        time.sleep(5)
 
         # Gooing through each steps
-        for each in steps["steps"]:
+        for count, dict in enumerate(steps["steps"]):
             phrase_parts = []
             # Iterate through all keys
-            for key, value in each.items():
+            for key, value in dict.items():
                 phrase_parts.append(str(value).lower())  # Convert values to lowercase strings
 
             phrase = " ".join(phrase_parts)
 
-            print(f"Step: {phrase} started")
+            print(f"Step {count}: {phrase}")
+        
+        #pyautogui.screenshot('my_screenshot.png')
+        #screenshot = "my_screenshot.png"
+        #output_text, action, display_image = self.perform_gui_grounding(screenshot, user_query)
+        #display_image.save('test.png')
+        # Display results
+        #print(action)
 
-            completion = self.llm.chat.completions.create(
-                model="llama-3.2-90b-vision-preview",
-                messages=[
-                    {"role": "user", "content": [
-                        {"type":"image_url", "image_url":{"url": f"data:image/jpeg;base64,{base64_screenshot}"}},
-                        {"type":"text", "text":"Here are the contents of the screen."},
-                        {"type":"text", "text": "What would be the the action for this request:"+ phrase},
-                    ]}
-                ],
-                tools = computeruse_tools
-            )
-            tool_calls = completion.choices[0].message.tool_calls
-            
-            if tool_calls:            
-                for tool_call in tool_calls:
-                    function_name = tool_call.function.name
-                    print("Running this tool: "+function_name)
-                    if function_name == "click":
-                        query = json.loads(tool_call.function.arguments)["query"]
-                        result_x, result_y = self.get_coordinates(query)
-                        print(f"query: {query} and position: {result_x}, {result_y}")
-                        pyautogui.click(x=result_x, y=result_y) 
-                        pyautogui.moveTo(result_x, result_y)
 
-                    if function_name == "type_url":
-                        query = json.loads(tool_call.function.arguments)["query"]
-                        print(f"query: {query}")
-                        pyautogui.hotkey('ctrl', 'a')
-                        pyautogui.write(query)    
-                        #pyautogui.press('enter')
+    def get_steps(self, user_query=None):
 
-                    if function_name == "press_key":
-                        query = json.loads(tool_call.function.arguments)["query"]
-                        print(f"query: {query}")
-                        pyautogui.press(query)
+        completion = self.steps_llm.chat.completions.create(
+            model="phi4",
+            messages=[
+                {"role": "system", "content": """
+                You are a computer use assistant and has the capability do the browser automations.
+                Create a step by step approach a human would action it to acheive this in GUI. 
+                DO NOT have wait, locate, launch, maximize and focus steps. 
+                Ouptput in json format. Make sure you have 'steps' key in the json object.
+                """
+                },
+                {"role": "user", "content": [{"type":"text", "text":user_query}]}
+            ],
+            response_format={ "type": "json_object", "schema" : self.schema }
 
-                        
-
-            print("Waiting...")
-            time.sleep(10)
-    
-
-    def get_coordinates(self, query):
-
-        pyautogui.screenshot('my_screenshot.png')
-
-        result = self.huggingface_client.predict(
-            image=handle_file("my_screenshot.png"),
-            text_input= query + "\nReturn the response in the form of a bbox",
-            model_id=self.OSATLAS_HUGGINGFACE_MODEL,
-            api_name=self.OSATLAS_HUGGINGFACE_API,
         )
-        print(result)
 
-        numbers = [float(number) for number in re.findall(r"\d+\.\d+", result[1])]
-        # x1, y1, x2, y2
+        steps = json.loads(completion.choices[0].message.content)
+        
+        return steps
 
-        result_x, result_y = (numbers[0] + numbers[2]) // 2, (numbers[1] + numbers[3]) // 2
-        return result_x, result_y
+
+    def perform_gui_grounding(self, screenshot_path, user_query):
+        """
+        Perform GUI grounding using Qwen model to interpret user query on a screenshot.
+        
+        Args:
+            screenshot_path (str): Path to the screenshot image
+            user_query (str): User's query/instruction
+            model: Preloaded Qwen model
+            processor: Preloaded Qwen processor
+            
+        Returns:
+            tuple: (output_text, display_image) - Model's output text and annotated image
+        """
+
+        # Open and process image
+        input_image = Image.open(screenshot_path)
+        resized_height, resized_width = smart_resize(
+            input_image.height,
+            input_image.width,
+            factor=self.processor.image_processor.patch_size * self.processor.image_processor.merge_size,
+            min_pixels=self.processor.image_processor.min_pixels,
+            max_pixels=self.processor.image_processor.max_pixels,
+        )
+        
+        # Initialize computer use function
+        computer_use = ComputerUse(
+            cfg={"display_width_px": resized_width, "display_height_px": resized_height}
+        )
+
+        # Build messages
+        message = NousFnCallPrompt.preprocess_fncall_messages(
+            messages=[
+                Message(role="system", content=[ContentItem(text="You are a helpful assistant.")]),
+                Message(role="user", content=[
+                    ContentItem(text=user_query),
+                    ContentItem(image=f"file://{screenshot_path}")
+                ]),
+            ],
+            functions=[computer_use.function],
+            lang=None,
+        )
+        message = [msg.model_dump() for msg in message]
+
+        # Process input
+        text = self.processor.apply_chat_template(message, tokenize=False, add_generation_prompt=True)
+        inputs = self.processor(text=[text], images=[input_image], padding=True, return_tensors="pt").to('cuda')
+
+        # Generate output
+        output_ids = self.model.generate(**inputs, max_new_tokens=2048)
+        generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(inputs.input_ids, output_ids)]
+        output_text = self.processor.batch_decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)[0]
+
+        # Parse action and visualize
+        action = json.loads(output_text.split('<tool_call>\n')[1].split('\n</tool_call>')[0])
+        display_image = input_image.resize((resized_width, resized_height))
+        display_image = draw_point(input_image, action['arguments']['coordinate'], color='green')
+        
+        return output_text, action, display_image
