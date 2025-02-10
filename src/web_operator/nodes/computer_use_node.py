@@ -37,9 +37,10 @@ class ComputerUseNode:
                                 "properties": {
                                     "action": {"type": "string"},
                                     #"target": {"type": "string"},
-                                    "description": {"type": "string"}
+                                    "description": {"type": "string"},
+                                    "device": {"type": "string"}
                                 },
-                                "required": ["action", "description"],
+                                "required": ["action", "description", "device"],
                                 "additionalProperties": False
                             }
                         },
@@ -59,31 +60,18 @@ class ComputerUseNode:
     def run(self, user_query=None):
         history = []
         steps = self.get_steps(user_query=user_query)
-
         print(steps)
-
-        # Gooing through each steps
+        # Going through each steps
         for count, dict in enumerate(steps["steps"]):
-            phrase_parts = []
-            # Iterate through all keys
-            for key, value in dict.items():
-                phrase_parts.append(str(value).lower())  # Convert values to lowercase strings
-
-            #phrase = ": ".join(phrase_parts)
-            phrase = dict['description']
-            #print("Waiting for 5 seconds...")
+            phrase = dict['description'] + " using " + dict['device']
             time.sleep(1)
-
             print(f"Step {count}: {phrase}")
-
-        
             pyautogui.screenshot('my_screenshot.png')
             screenshot = "my_screenshot.png"
-            output_text, selected_function, display_image = self.perform_gui_grounding(screenshot, query=phrase, history=history)
-            display_image.save('test.png')
+            output_text, selected_function = self.perform_gui_grounding(screenshot, query=phrase, history=history)
             # Display results
             print(selected_function)
-
+            # Executing the action
             action = selected_function['arguments']["action"]
             if action in ["left_click", "right_click", "middle_click", "double_click"]:
                 coordinate = selected_function['arguments']["coordinate"]
@@ -93,9 +81,12 @@ class ComputerUseNode:
                 text = selected_function['arguments']["text"]
                 pyautogui.write(text, interval=0.25)  
 
+            elif action == "key":
+                keys = selected_function['arguments']["keys"]
+                pyautogui.press(keys)
+
             history.append(ContentItem(text=phrase+str(selected_function)))
             
-
 
     def get_steps(self, user_query=None):
 
@@ -112,12 +103,11 @@ class ComputerUseNode:
                 
                 Example format for the userquery 'Open a web browser and naviagate to scholar.google.com':
                 {'steps': [
-                 {'action': 'click', 'description': 'Click the Chrome web browser.'}, 
-                 {'action': 'type', 'description': "In the address bar, type 'scholar.google.com'."}, 
-                 {'action': 'press enter', 'description': 'Press the Enter key to navigate to Google Scholar.'}
+                 {'action': 'click', 'description': 'Click the Chrome web browser', 'device': 'mouse'}, 
+                 {'action': 'type', 'description': 'In the address bar, type 'scholar.google.com' ', 'device': 'keyboard'}, 
+                 {'action': 'press enter', 'description': 'Press the Enter key to navigate to Google Scholar', 'device': 'keyboard'}
                  ]
                 }
-
                 """
                 },
                 {"role": "user", "content": [{"type":"text", "text":user_query}]}
@@ -137,9 +127,8 @@ class ComputerUseNode:
         
         Args:
             screenshot_path (str): Path to the screenshot image
-            user_query (str): User's query/instruction
-            model: Preloaded Qwen model
-            processor: Preloaded Qwen processor
+            query (str): query/instruction
+            history: History of the conversation
             
         Returns:
             tuple: (output_text, display_image) - Model's output text and annotated image
@@ -185,8 +174,8 @@ class ComputerUseNode:
         output_text = self.processor.batch_decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)[0]
 
         # Parse action and visualize
-        action = json.loads(output_text.split('<tool_call>\n')[1].split('\n</tool_call>')[0])
-        display_image = input_image.resize((resized_width, resized_height))
-        display_image = draw_point(input_image, action['arguments']['coordinate'], color='green')
+        selected_function = json.loads(output_text.split('<tool_call>\n')[1].split('\n</tool_call>')[0])
+        #display_image = input_image.resize((resized_width, resized_height))
+        #display_image = draw_point(input_image, action['arguments']['coordinate'], color='green')
         
-        return output_text, action, display_image
+        return output_text, selected_function
