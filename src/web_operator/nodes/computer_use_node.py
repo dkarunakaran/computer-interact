@@ -14,16 +14,9 @@ from transformers.models.qwen2_5_vl.image_processing_qwen2_5_vl import smart_res
 from web_operator.nodes.tools import ComputerUse
 from web_operator.utils import draw_point
 import json
-from pydantic import BaseModel
+import pyautogui
 
 # Ref: https://github.com/QwenLM/Qwen2.5-VL/blob/main/cookbooks/computer_use.ipynb
-
-
-class GetSteps(BaseModel):
-    action: str
-    target: str
-    description: str
-
 
 class ComputerUseNode:
     def __init__(self):
@@ -76,21 +69,32 @@ class ComputerUseNode:
             for key, value in dict.items():
                 phrase_parts.append(str(value).lower())  # Convert values to lowercase strings
 
-            phrase = ": ".join(phrase_parts)
-            print("Waiting for 5 seconds...")
-            time.sleep(5)
+            #phrase = ": ".join(phrase_parts)
+            phrase = dict['description']
+            #print("Waiting for 5 seconds...")
+            time.sleep(1)
 
             print(f"Step {count}: {phrase}")
 
         
-            #pyautogui.screenshot('my_screenshot.png')
+            pyautogui.screenshot('my_screenshot.png')
             screenshot = "my_screenshot.png"
-            output_text, action, display_image = self.perform_gui_grounding(screenshot, query=phrase, history=history)
+            output_text, selected_function, display_image = self.perform_gui_grounding(screenshot, query=phrase, history=history)
             display_image.save('test.png')
             # Display results
-            print(action)
-            history.append( ContentItem(text=phrase+action))
-            break
+            print(selected_function)
+
+            action = selected_function['arguments']["action"]
+            if action in ["left_click", "right_click", "middle_click", "double_click"]:
+                coordinate = selected_function['arguments']["coordinate"]
+                pyautogui.click(coordinate[0], coordinate[1])  
+
+            elif action == "type":
+                text = selected_function['arguments']["text"]
+                pyautogui.write(text, interval=0.25)  
+
+            history.append(ContentItem(text=phrase+str(selected_function)))
+            
 
 
     def get_steps(self, user_query=None):

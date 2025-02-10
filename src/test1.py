@@ -19,7 +19,7 @@ query2 = "Search for 'OpenAI' in the search bar"
 query3 = "go to gmail using google API and read the email titles 'test'"
 query4 = "Open the settings in the os and set volume to zero"
 query5 = "Open a firefox web browser and  go to sportsbet.com"
-user_query = query4
+user_query = query5
 
 #tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-7B")
 #model = AutoModelForCausalLM.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-7B")
