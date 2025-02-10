@@ -1,7 +1,7 @@
 
 from openai import OpenAI
-import pyautogui
-import base64
+import os
+import time
 import torch
 from transformers import Qwen2_5_VLProcessor, Qwen2_5_VLForConditionalGeneration
 from PIL import Image
@@ -14,8 +14,15 @@ from transformers.models.qwen2_5_vl.image_processing_qwen2_5_vl import smart_res
 from web_operator.nodes.tools import ComputerUse
 from web_operator.utils import draw_point
 import json
+from pydantic import BaseModel
 
 # Ref: https://github.com/QwenLM/Qwen2.5-VL/blob/main/cookbooks/computer_use.ipynb
+
+
+class GetSteps(BaseModel):
+    action: str
+    target: str
+    description: str
 
 
 class ComputerUseNode:
@@ -23,19 +30,36 @@ class ComputerUseNode:
         model_path = "Qwen/Qwen2.5-VL-7B-Instruct"
         self.processor = Qwen2_5_VLProcessor.from_pretrained(model_path)
         self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_path, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2",device_map="auto")
-        self.schema = """
-            {
-                "type": "object",
-                "properties": {
-                    "action": {"type": "string"},
-                    "target": {"type": "string"}
+        self.response_json_format = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "step_reasoning",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "steps": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {"type": "string"},
+                                    #"target": {"type": "string"},
+                                    "description": {"type": "string"}
+                                },
+                                "required": ["action", "description"],
+                                "additionalProperties": False
+                            }
+                        },
+                    },
+                    "required": ["steps"],
+                    "additionalProperties": False
                 },
-                "required": ["action", "target"]
+                "strict": True
             }
-        """
+        }
+    
         self.steps_llm = OpenAI(
-            base_url = 'http://localhost:11434/v1',
-            api_key='ollama', # required, but unused
+            api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
         )
 
         
@@ -52,33 +76,48 @@ class ComputerUseNode:
             for key, value in dict.items():
                 phrase_parts.append(str(value).lower())  # Convert values to lowercase strings
 
-            phrase = " ".join(phrase_parts)
+            phrase = ": ".join(phrase_parts)
+            print("Waiting for 5 seconds...")
+            time.sleep(5)
 
             print(f"Step {count}: {phrase}")
+
         
-        #pyautogui.screenshot('my_screenshot.png')
-        #screenshot = "my_screenshot.png"
-        #output_text, action, display_image = self.perform_gui_grounding(screenshot, user_query)
-        #display_image.save('test.png')
-        # Display results
-        #print(action)
+            #pyautogui.screenshot('my_screenshot.png')
+            screenshot = "my_screenshot.png"
+            output_text, action, display_image = self.perform_gui_grounding(screenshot, user_query=phrase)
+            display_image.save('test.png')
+            # Display results
+            print(action)
+            break
 
 
     def get_steps(self, user_query=None):
 
         completion = self.steps_llm.chat.completions.create(
-            model="phi4",
+            #model="phi4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": """
                 You are a computer use assistant and has the capability do the browser automations.
                 Create a step by step approach a human would action it to acheive this in GUI. 
                 DO NOT have wait, locate, launch, maximize and focus steps. 
-                Ouptput in json format. Make sure you have 'steps' key in the json object.
+                DO NOT combine steps together.
+                Make sure you have 'steps' key in the json object.
+                
+                Example format for the userquery 'Open a web browser and naviagate to scholar.google.com':
+                {'steps': [
+                 {'action': 'click', 'description': 'Click the Chrome web browser.'}, 
+                 {'action': 'type', 'description': "In the address bar, type 'scholar.google.com'."}, 
+                 {'action': 'press enter', 'description': 'Press the Enter key to navigate to Google Scholar.'}
+                 ]
+                }
+
                 """
                 },
                 {"role": "user", "content": [{"type":"text", "text":user_query}]}
             ],
-            response_format={ "type": "json_object", "schema" : self.schema }
+            response_format=self.response_json_format
 
         )
 

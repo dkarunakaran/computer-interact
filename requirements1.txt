@@ -5,7 +5,8 @@ python -m pip install git+https://github.com/huggingface/transformers
 python -m pip install --no-cache-dir accelerate
 python -m pip install --no-cache-dir qwen-vl-utils
 python -m pip install --no-cache-dir --no-build-isolation flash-attn==2.6.1
-openai==1.60.2
-qwen_agent
-python-dateutil
-pyautogui
+python -m pip install openai==1.60.2
+python -m pip install qwen_agent
+python -m pip install python-dateutil
+python -m pip install pyautogui
+python -m pip install python-dotenv==1.0.1
