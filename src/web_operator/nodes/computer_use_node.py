@@ -64,7 +64,7 @@ class ComputerUseNode:
 
         
     def run(self, user_query=None):
-        
+        history = []
         steps = self.get_steps(user_query=user_query)
 
         print(steps)
@@ -85,10 +85,11 @@ class ComputerUseNode:
         
             #pyautogui.screenshot('my_screenshot.png')
             screenshot = "my_screenshot.png"
-            output_text, action, display_image = self.perform_gui_grounding(screenshot, user_query=phrase)
+            output_text, action, display_image = self.perform_gui_grounding(screenshot, query=phrase, history=history)
             display_image.save('test.png')
             # Display results
             print(action)
+            history.append( ContentItem(text=phrase+action))
             break
 
 
@@ -126,7 +127,7 @@ class ComputerUseNode:
         return steps
 
 
-    def perform_gui_grounding(self, screenshot_path, user_query):
+    def perform_gui_grounding(self, screenshot_path, query, history=[]):
         """
         Perform GUI grounding using Qwen model to interpret user query on a screenshot.
         
@@ -159,8 +160,9 @@ class ComputerUseNode:
         message = NousFnCallPrompt.preprocess_fncall_messages(
             messages=[
                 Message(role="system", content=[ContentItem(text="You are a helpful assistant.")]),
+                Message(role="user", content=history),
                 Message(role="user", content=[
-                    ContentItem(text=user_query),
+                    ContentItem(text=query),
                     ContentItem(image=f"file://{screenshot_path}")
                 ]),
             ],
