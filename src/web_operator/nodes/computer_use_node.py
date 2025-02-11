@@ -73,17 +73,23 @@ class ComputerUseNode:
             print(selected_function)
             # Executing the action
             action = selected_function['arguments']["action"]
-            if action in ["left_click", "right_click", "middle_click", "double_click"]:
+            if action in ["left_click", "middle_click", "double_click"]:
                 coordinate = selected_function['arguments']["coordinate"]
-                pyautogui.click(coordinate[0], coordinate[1])  
-
+                pyautogui.click(coordinate[0]-2, coordinate[1]+2)  
+            elif action == "right_click":
+                pyautogui.click(button='right')
             elif action == "type":
                 text = selected_function['arguments']["text"]
                 pyautogui.write(text, interval=0.25)  
-
             elif action == "key":
                 keys = selected_function['arguments']["keys"]
                 pyautogui.press(keys)
+            elif action == "mouse_move":
+                coordinate = selected_function['arguments']["coordinate"]
+                pyautogui.moveTo(coordinate[0], coordinate[1])  
+            elif action == "scroll":
+                pixels = selected_function['arguments']["pixels"]
+                pyautogui.scroll(pixels)
 
             history.append(ContentItem(text=phrase+str(selected_function)))
             

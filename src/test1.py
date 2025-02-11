@@ -37,12 +37,22 @@ action 5: press enter for search
 """
 
 query7 = """
-action 0: Using gmail API, go to gmail and read the email titles 'test'
 action 1: open the firfox web browser
 action 2: type scholar.google.com 
 action 3: press enter for search
 action 4: type openai in the search box of google scholar
 action 5: press enter for search
+action 6: move mouse to an empty space on the page
+action 7: do the right click
+action 8: select the save as option
+action 9: type page1 as the name for the page
+action 10: save the page
+action 11: scroll the page down
+action 12: click the next button
+action 13: select the save as option
+action 14: type page2 as the name for the page
+action 15: save the page
+action 16: close the browser
 """
 
 user_query = query7
