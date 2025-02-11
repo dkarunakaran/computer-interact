@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "web_operator"
-version = "0.1.8"
+version = "0.2.0"
 description = "A library for automating web tasks"
 authors = [
     { name = "Dhanoop Karunakaran" }
@@ -17,38 +17,20 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "google-api-python-client==2.159.0",
-    "google-auth==2.37.0",
-    "google-auth-httplib2==0.2.0",
-    "google-auth-oauthlib==1.2.0",
-    "beautifulsoup4~=4.12.3",
-    "lxml==5.3.0",
-    "PyYAML==6.0.2",
-    "langchain==0.3.14",
-    "langchain-chroma==0.2.0",
-    "langchain-ollama==0.2.2",
-    "langchain-huggingface==0.1.2",
-    "langchain_community==0.3.14",
-    "langchain-openai==0.3.0",
-    "langgraph==0.2.60",
-    "langgraph-checkpoint-sqlite==2.0.1",
-    "google-generativeai==0.8.4",
-    "langchain-google-community==2.0.4",
-    "pytest-playwright==0.6.2",
-    "playwright==1.49.1",
-    "pandas==2.2.3",
-    "python-dotenv==1.0.1",
-    "arxiv==2.1.3",
-    "xmltodict==0.14.2",
+    "networkx==3.1",
+    "torch==2.4.0 --index-url https://download.pytorch.org/whl/cu121"
+    "torchvision==0.19 --index-url https://download.pytorch.org/whl/cu121",
+    "torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu121",
+    "xformers==0.0.27.post2 --index-url https://download.pytorch.org/whl/cu121".
+    "git+https://github.com/huggingface/transformers",
+    "accelerate==1.3.0",
+    "qwen-vl-utils==0.0.10",
+    "flash-attn==2.6.1"
+    "openai==1.60.2",
+    "qwen_agent==0.0.15",
+    "python-dateutil==2.9.0.post0",
     "pyautogui==0.9.54",
-    "gradio_client==1.7.0",
-    "pillow>=6.2.0",
-    "pytesseract>=0.2.6",
-    "werkzeug>=2.0",
-    "tensorboard",
-    "bitsandbytes==0.43.2",
-    "peft==0.8.2",
-    "transformers==4.46.2"
+    "python-dotenv==1.0.1"
 ]
 
 
