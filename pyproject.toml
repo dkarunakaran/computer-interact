@@ -18,14 +18,9 @@ classifiers = [
 ]
 dependencies = [
     "networkx==3.1",
-    "torch==2.4.0 --index-url https://download.pytorch.org/whl/cu121"
-    "torchvision==0.19 --index-url https://download.pytorch.org/whl/cu121",
-    "torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu121",
-    "xformers==0.0.27.post2 --index-url https://download.pytorch.org/whl/cu121".
-    "git+https://github.com/huggingface/transformers",
     "accelerate==1.3.0",
     "qwen-vl-utils==0.0.10",
-    "flash-attn==2.6.1"
+    "flash-attn==2.6.1",
     "openai==1.60.2",
     "qwen_agent==0.0.15",
     "python-dateutil==2.9.0.post0",

@@ -10,10 +10,13 @@ This library excels at tasks solvable by its defined set of agents.
 
 1. Setup conda enviornment with python 3.12
 
-2. Web-operator instllation
+2. Web-operator and other software installation
 
     ```
     python -m pip install web-operator
+    python -m pip install --no-cache-dir torch==2.4.0 torchvision==0.19 torchaudio==2.4.0 xformers==0.0.27.post2 --index-url https://download.pytorch.org/whl/cu121
+    python -m pip install git+https://github.com/huggingface/transformers
+    
     ```
 
 3. Environment Setup
