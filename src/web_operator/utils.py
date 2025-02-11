@@ -1,9 +1,10 @@
 import logging
 import yaml
 import os.path
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+#from google.auth.transport.requests import Request
+#from google.oauth2.credentials import Credentials
+#from google_auth_oauthlib.flow import InstalledAppFlow
+from PIL import Image, ImageDraw, ImageColor
 
 # Ref - https://medium.com/pythoneers/beyond-print-statements-elevating-debugging-with-python-logging-715b2ae36cd5
 def logger_helper(cfg):
@@ -47,7 +48,8 @@ def logger_helper(cfg):
     #logger.error("This will print to console and also save to error.log")
 
     return logger
-        
+
+"""        
 def google_api_authenticate(cfg):
     
     if not os.environ.get("GOOGLE_API_CREDS_LOC"):
@@ -78,4 +80,37 @@ def google_api_authenticate(cfg):
         token.write(creds.to_json())
 
     return creds
+"""
+
+def draw_point(image: Image.Image, point: list, color=None):
+    if isinstance(color, str):
+        try:
+            color = ImageColor.getrgb(color)
+            color = color + (128,)  
+        except ValueError:
+            color = (255, 0, 0, 128)  
+    else:
+        color = (255, 0, 0, 128)  
+
+    overlay = Image.new('RGBA', image.size, (255, 255, 255, 0))
+    overlay_draw = ImageDraw.Draw(overlay)
+    radius = min(image.size) * 0.05
+    x, y = point
+
+    overlay_draw.ellipse(
+        [(x - radius, y - radius), (x + radius, y + radius)],
+        fill=color
+    )
+    
+    center_radius = radius * 0.1
+    overlay_draw.ellipse(
+        [(x - center_radius, y - center_radius), 
+         (x + center_radius, y + center_radius)],
+        fill=(0, 255, 0, 255)
+    )
+
+    image = image.convert('RGBA')
+    combined = Image.alpha_composite(image, overlay)
+
+    return combined.convert('RGB')
 
