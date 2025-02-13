@@ -26,27 +26,33 @@ action 5: press enter for search
 
 query7 = """
 action 1: open the firfox web browser
+action 1.1: click on the address bar
 action 2: type scholar.google.com 
 action 3: press enter for search
 action 4: type openai in the search box of google scholar
 action 5: press enter for search
-action 6: move mouse to an empty space on the page
-action 7: do the right click
-action 8: select the save as option
-action 9: type page1 as the name for the page
-action 10: save the page
-action 11: scroll the page down
-action 12: click the next button
-action 13: select the save as option
-action 14: type page2 as the name for the page
-action 15: save the page
-action 16: close the browser
+action 6: click on the address bar
+action 7: press ctrl and a
+action 7.1:press ctrl and c
+action 8: scroll down 
+action 9: click on the next button 
+action 10: click on the address bar
+action 11: press ctrl and a
+action 12: press ctrl and c
+action 13: close the browser
 """
+
+"""
+Things to do: 
+1. make sure the action is complete by comparing the previous screenshot and current screenshot
+
+"""
+
 
 user_query = query7
 
 supervisor = Supervisor()
 supervisor.configure()
 supervisor.run(user_query)
-
+print(supervisor.state)
 

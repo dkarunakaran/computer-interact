@@ -19,8 +19,10 @@ import pyautogui
 # Ref: https://github.com/QwenLM/Qwen2.5-VL/blob/main/cookbooks/computer_use.ipynb
 
 class ComputerUseNode:
-    def __init__(self):
-        model_path = "Qwen/Qwen2.5-VL-7B-Instruct"
+    def __init__(self, logger, config = None):
+        self.logger = logger
+        self.config = config
+        model_path = self.config['computer_use_model']
         self.processor = Qwen2_5_VLProcessor.from_pretrained(model_path)
         self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_path, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2",device_map="auto")
         self.response_json_format = {
@@ -53,24 +55,31 @@ class ComputerUseNode:
         }
     
         self.steps_llm = OpenAI(
-            api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+            api_key=os.environ.get("GEMINI_API_KEY"),
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
         )
+
+        self.message = {
+            'input':[],
+            'action': [],
+            'url': []
+        }
 
         
     def run(self, user_query=None):
         history = []
         steps = self.get_steps(user_query=user_query)
-        print(steps)
+        self.logger.info(steps)
         # Going through each steps
         for count, dict in enumerate(steps["steps"]):
             phrase = dict['description'] + " using " + dict['device']
             time.sleep(1)
-            print(f"Step {count}: {phrase}")
+            self.logger.info(f"Step {count}: {phrase}")
             pyautogui.screenshot('my_screenshot.png')
             screenshot = "my_screenshot.png"
             output_text, selected_function = self.perform_gui_grounding(screenshot, query=phrase, history=history)
             # Display results
-            print(selected_function)
+            self.logger.info(selected_function)
             # Executing the action
             action = selected_function['arguments']["action"]
             if action in ["left_click", "middle_click", "double_click"]:
@@ -83,7 +92,14 @@ class ComputerUseNode:
                 pyautogui.write(text, interval=0.25)  
             elif action == "key":
                 keys = selected_function['arguments']["keys"]
-                pyautogui.press(keys)
+                if 'ctrl' in keys:
+                    pyautogui.keyDown('ctrl')
+                for key in keys:
+                    if key != 'ctrl':
+                        pyautogui.press(key)
+                if 'ctrl' in keys:
+                    pyautogui.keyUp('ctrl')
+
             elif action == "mouse_move":
                 coordinate = selected_function['arguments']["coordinate"]
                 pyautogui.moveTo(coordinate[0], coordinate[1])  
@@ -97,8 +113,7 @@ class ComputerUseNode:
     def get_steps(self, user_query=None):
 
         completion = self.steps_llm.chat.completions.create(
-            #model="phi4",
-            model="gpt-4o-mini",
+            model=self.config['step_creation_model'],
             messages=[
                 {"role": "system", "content": """
                 You are a computer use assistant and has the capability do the browser automations.

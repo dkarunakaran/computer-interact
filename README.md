@@ -6,6 +6,9 @@ While it leverages browser capabilities, its current functionality is focused on
 
 This library excels at tasks solvable by its defined set of agents.
 
+# Requirement
+This required an Nvidia GPU with 12GB of VRAM to run the Hugging Face model locally. It also required the Gemini API.
+
 ## Installation
 
 1. Setup conda enviornment with python 3.12
@@ -13,9 +16,10 @@ This library excels at tasks solvable by its defined set of agents.
 2. Web-operator and other software installation
 
     ```
+    conda install pytorch pytorch-cuda=12.1 flash-attn=2.6.1
+    python -m pip install --no-cache-dir git+https://github.com/huggingface/transformers #
     python -m pip install web-operator
-    python -m pip install --no-cache-dir torch==2.4.0 torchvision==0.19 torchaudio==2.4.0 xformers==0.0.27.post2 --index-url https://download.pytorch.org/whl/cu121
-    python -m pip install git+https://github.com/huggingface/transformers
+    
     
     ```
 
@@ -30,12 +34,7 @@ This library excels at tasks solvable by its defined set of agents.
     ```
     b. Create a .env file in your project's root directory with the following structure:
     ```
-    OPENAI_API_KEY=your_openai_api_key
-
-    # Only add below config if you want to use the GOOGLE services
-    GOOGLE_API_CREDS_LOC=your credentials.json file location
-    GOOGLE_API_TOKEN_LOC=your token.json file location
-    ```
+    GEMINI_API_KEY=your_openai_api_key
 
     c. Add .env to your .gitignore file to prevent accidentally committing sensitive information:
 
