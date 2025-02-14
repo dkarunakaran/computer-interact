@@ -1,11 +1,10 @@
 # Web-operator
 
-A library for automating web tasks, built extensively using LangGraph and other tools.
+It's a basic library for computer use, especially for web tasks, built using Qwen2.5-vl VLM and Gemini LLM. By modifying this tool to suit your needs, you can build more complex tasks.
 
-While it leverages browser capabilities, its current functionality is focused on specific web tasks. It's not designed for arbitrary web automation.
+## Computer use model
 
-This library excels at tasks solvable by its defined set of agents.
-
+We use Qwen 2.5 VL 7B Instruct, a 7-billion parameter vision-language model that understands both images and text. It analyzes image content, including text, charts, and layouts, going beyond simple object detection.  It can even be used for computer tasks by providing screenshots and search queries. In this library, we use it to automate computer tasks, especially web search.
 ## Requirement
 This required an Nvidia GPU with 12GB of VRAM to run the Hugging Face model locally. It also required the Gemini API.
 
