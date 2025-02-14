@@ -24,7 +24,8 @@ class ComputerUseNode:
         self.config = config
         model_path = self.config['computer_use_model']
         self.processor = Qwen2_5_VLProcessor.from_pretrained(model_path)
-        self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_path, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2",device_map="auto")
+        #self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_path, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2",device_map="auto")
+        self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_path, torch_dtype=torch.bfloat16, device_map="auto")
         self.response_json_format = {
             "type": "json_schema",
             "json_schema": {

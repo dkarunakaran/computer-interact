@@ -16,9 +16,12 @@ This required an Nvidia GPU with 12GB of VRAM to run the Hugging Face model loca
 2. Web-operator and other software installation
 
     ```
-    conda install pytorch pytorch-cuda=12.1 flash-attn=2.6.1
-    python -m pip install --no-cache-dir git+https://github.com/huggingface/transformers #
-    python -m pip install web-operator
+    conda config --add channels pytorch
+    conda config --add channels conda-forge
+    conda config --add channels nvidia
+
+    python -m pip install --upgrade web-operator
+    python -m pip install git+https://github.com/huggingface/transformers@f3f6c86582611976e72be054675e2bf0abb5f775
     
     
     ```
@@ -100,9 +103,7 @@ supervisor = Supervisor()
 
 supervisor.config["debug"] = True
 
-# Make sure the config is changes before the configure function call.
+# Make sure the config is changed before the configure function call.
 supervisor.configure()
 supervisor.run(user_query)
-
-
 ```

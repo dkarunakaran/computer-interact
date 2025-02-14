@@ -55,6 +55,6 @@ supervisor = Supervisor()
 
 print(supervisor.config)
 supervisor.configure()
-#supervisor.run(user_query)
+supervisor.run(user_query)
 #print(supervisor.state)
 
