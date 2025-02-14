@@ -1,6 +1,8 @@
 # Web-operator
+This library showcases the how computer use models operates. OpenAI and Claude may be using similar approach, but unsure at this point. It needs further development for complext tasks.
 
-It's a basic library for computer use, especially for web tasks, built using Qwen2.5-vl VLM and Gemini LLM. By modifying this tool to suit your needs, you can build more complex tasks.
+## Archtecture
+
 
 ## Computer use model
 
