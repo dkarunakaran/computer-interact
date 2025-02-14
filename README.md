@@ -1,12 +1,22 @@
 # Web-operator
-This library showcases the how computer use models operates. OpenAI and Claude may be using similar approach, but unsure at this point. It needs further development for complext tasks.
 
-## Archtecture
+Recently, OpenAI has released an operator agent that can browse the web and perform actions based on prompts. My approach differs from these agents and the browser-use library because my approach has the potential to automate all sorts of computer tasks. As part of the development, I built a basic library called web-operator that performs minimal computer tasks.
+
+Disclaimer: It is important to note that this is a starting point and requires further development to handle more complex scenarios.
+
+A specific use case I envision is web search. For example, if we need to perform a web search on a specific topic, we often use Selenium or Playwright for web scraping. However, we frequently get blocked, especially by Google sites. If we can search the way a human does, these sites may not detect scraping.
+
+Disclaimer: Currently, the library can navigate sites based on instructions, but data scraping is not yet implemented.
+Design
+
+## Architecture of the library
+
+![alt text](images/process.png "Title")
 
 
-## Computer use model
+At the heart of this library lies the Qwen 2.5 VL 7B Instruct model. This powerful, 7-billion-parameter vision-language model can understand both image and text content. It goes beyond simple object detection by analyzing the structure and content of images, including text, charts, and layouts. This capability makes it well-suited for automating computer tasks, where understanding the visual context of a screen or interface is crucial.
 
-We use Qwen 2.5 VL 7B Instruct, a 7-billion parameter vision-language model that understands both images and text. It analyzes image content, including text, charts, and layouts, going beyond simple object detection.  It can even be used for computer tasks by providing screenshots and search queries. In this library, we use it to automate computer tasks, especially web search.
+
 ## Requirement
 This required an Nvidia GPU with 12GB of VRAM to run the Hugging Face model locally. It also required the Gemini API.
 
