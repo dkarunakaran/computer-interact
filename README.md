@@ -60,9 +60,6 @@ This required an Nvidia GPU with 12GB of VRAM to run the Hugging Face model loca
     load_dotenv()
     ```
 
-## Usecase
-please see the examples folder for a simple websearch usecase.
-
 ## How to change the basic config
 
 1. print config
@@ -83,7 +80,7 @@ print(supervisor.config)
 {'debug': False, 'step_creation_model': 'gemini-2.0-pro-exp-02-05', 'computer_use_model': 'Qwen/Qwen2.5-VL-7B-Instruct'}
 ```
 
-3. Sample full code
+## Example
 
 ```
 from web_operator.supervisor import Supervisor
@@ -93,20 +90,12 @@ load_dotenv()
 
 query = """
 action 1: open the firfox web browser
-action 1.1: click on the address bar
-action 2: type scholar.google.com 
-action 3: press enter for search
-action 4: type openai in the search box of google scholar
-action 5: press enter for search
-action 6: click on the address bar
-action 7: press ctrl and a
-action 7.1:press ctrl and c
-action 8: scroll down 
-action 9: click on the next button 
-action 10: click on the address bar
-action 11: press ctrl and a
-action 12: press ctrl and c
-action 13: close the browser
+action 2: click on the address bar
+action 3: type scholar.google.com 
+action 4: press enter for search
+action 5: type openai in the search box of google scholar
+action 6: press enter for search
+action 7: close the browser
 """
 user_query = query
 
