@@ -14,8 +14,7 @@ Design
 ![alt text](images/process.png "Title")
 
 
-At the heart of this library lies the Qwen 2.5 VL 7B Instruct model. This powerful, 7-billion-parameter vision-language model can understand both image and text content. It goes beyond simple object detection by analyzing the structure and content of images, including text, charts, and layouts. This capability makes it well-suited for automating computer tasks, where understanding the visual context of a screen or interface is crucial.
-
+At the heart of this library lies the Qwen 2.5 VL 7B Instruct model. This powerful, 7-billion-parameter vision-language model can understand both image and text content. It goes beyond simple object detection by analyzing the structure and content of images, including text, charts, and layouts. This capability makes it well-suited for automating computer tasks, where understanding the visual context of a screen or interface is crucial. 
 
 ## Requirement
 This required an Nvidia GPU with 12GB of VRAM to run the Hugging Face model locally. It also required the Gemini API.
@@ -107,3 +106,5 @@ supervisor.config["debug"] = True
 supervisor.configure()
 supervisor.run(user_query)
 ```
+## Medium article
+Here is the link for the medium article regarding the library: https://medium.com/intro-to-artificial-intelligence/my-attempt-to-build-a-computer-use-capability-using-an-llm-35441b61e535
