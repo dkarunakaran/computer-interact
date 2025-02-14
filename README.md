@@ -1,6 +1,6 @@
 # Web-operator
 
-Recently, OpenAI has released an operator agent that can browse the web and perform actions based on prompts. My approach differs from these agents and the browser-use library because my approach has the potential to automate all sorts of computer tasks. As part of the development, I built a basic library called web-operator that performs minimal computer tasks.
+Recently, OpenAI released an operator agent that can browse the web and perform actions based on prompts. I attempted to build a basic computer-use capability for learning purposes. My approach differs from these agents and browser-use libraries because it has the potential to automate various computer tasks. Claude's computer use approach and ByteDance's UI-TARS are more advanced versions compared to my attempt. As part of this project, I built a basic library that performs minimal computer tasks.
 
 Disclaimer: It is important to note that this is a starting point and requires further development to handle more complex scenarios.
 
