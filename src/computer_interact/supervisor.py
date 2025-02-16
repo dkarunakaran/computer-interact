@@ -1,9 +1,9 @@
 from openai import OpenAI
-from web_operator.nodes.computer_use_node import ComputerUseNode
-from web_operator.nodes.api_operation_node import APIOperationNode
-from web_operator.nodes import router_node
+from computer_interact.nodes.computer_use_node import ComputerUseNode
+from computer_interact.nodes.api_operation_node import APIOperationNode
+from computer_interact.nodes import router_node
 import os
-from web_operator.utils import logger_helper
+from computer_interact.utils import logger_helper
 
 
 class Supervisor:

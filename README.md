@@ -1,4 +1,4 @@
-# Web-operator
+# Computer-interact
 
 Recently, OpenAI released an operator agent that can browse the web and perform actions based on prompts. I attempted to build a basic computer-use capability for learning purposes. My approach differs from these agents and browser-use libraries because it has the potential to automate various computer tasks. Claude's computer use approach and ByteDance's UI-TARS are more advanced versions compared to my attempt. As part of this project, I built a basic library that performs minimal computer tasks.
 
@@ -23,14 +23,14 @@ This required an Nvidia GPU with 12GB of VRAM to run the Hugging Face model loca
 
 1. Setup conda enviornment with python 3.12
 
-2. Web-operator and other software installation
+2. Computer-interact and other software installation
 
     ```
     conda config --add channels pytorch
     conda config --add channels conda-forge
     conda config --add channels nvidia
 
-    python -m pip install --upgrade web-operator
+    python -m pip install --upgrade computer-interact
     python -m pip install git+https://github.com/huggingface/transformers@f3f6c86582611976e72be054675e2bf0abb5f775
     
     
@@ -82,7 +82,7 @@ print(supervisor.config)
 ## Example
 
 ```
-from web_operator.supervisor import Supervisor
+from computer_interact.supervisor import Supervisor
 from dotenv import load_dotenv
 
 load_dotenv()  

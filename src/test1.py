@@ -1,4 +1,4 @@
-from web_operator.supervisor import Supervisor
+from computer_interact.supervisor import Supervisor
 from dotenv import load_dotenv
 
 load_dotenv()  

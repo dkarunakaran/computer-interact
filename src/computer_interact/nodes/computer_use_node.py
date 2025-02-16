@@ -11,8 +11,8 @@ from qwen_agent.llm.fncall_prompts.nous_fncall_prompt import (
     ContentItem,
 )
 from transformers.models.qwen2_5_vl.image_processing_qwen2_5_vl import smart_resize
-from web_operator.nodes.tools import ComputerUse
-from web_operator.utils import draw_point
+from computer_interact.nodes.tools import ComputerUse
+from computer_interact.utils import draw_point
 import json
 import pyautogui
 
