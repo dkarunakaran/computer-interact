@@ -47,7 +47,7 @@ This required an Nvidia GPU with 12GB of VRAM to run the Hugging Face model loca
     ```
     b. Create a .env file in your project's root directory with the following structure:
     ```
-    GEMINI_API_KEY=your_openai_api_key
+    GEMINI_API_KEY=your_gemini_api_key
     ```
 
     c. Add .env to your .gitignore file to prevent accidentally committing sensitive information:
