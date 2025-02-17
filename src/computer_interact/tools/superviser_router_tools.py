@@ -2,8 +2,8 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "computer_use_node",
-            "description": "This is the computer automation node using LLM. This node is helpful when we don't have APIs of requested services and need to go through the browser.",
+            "name": "os_agent",
+            "description": "This is the operating system agent. This agent is helpful when we need to develop computer use capability specifically for automating the OS tasks.",
             "parameters": {  
                 "type": "object",
                 "properties": {}, 
@@ -15,8 +15,8 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "api_operation_node",
-            "description": "This node is activated when we can do operation using APIs of different services.",
+            "name": "web_agent",
+            "description": "This is the web agent where we need to do the search, browse, or naviagte using the browser",
             "parameters": {  
                 "type": "object",
                 "properties": {}, 
