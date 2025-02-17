@@ -52,6 +52,8 @@ Things to do:
 user_query = query6
 
 supervisor = Supervisor()
+
+print(supervisor.config)
 supervisor.configure()
 supervisor.run(user_query)
 #print(supervisor.state)
