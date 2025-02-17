@@ -49,7 +49,7 @@ Things to do:
 """
 
 
-user_query = query7
+user_query = query6
 
 supervisor = Supervisor()
 
