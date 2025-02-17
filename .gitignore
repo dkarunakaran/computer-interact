@@ -5,7 +5,6 @@ scripts/credentials.json
 scripts/token.json
 .pypirc
 .env
-weights
 my_screenshot.png
 
 # Byte-compiled / optimized / DLL files

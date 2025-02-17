@@ -22,7 +22,7 @@ def logger_helper(cfg):
     # Create a console handler that writes log messages to the console
     console_handler = logging.StreamHandler()  
     
-    if cfg.debug == True:
+    if cfg['debug'] == True:
         console_handler.setLevel(logging.DEBUG)  
     else:
         # Set the logging level for this handler to INFO, which means it will handle messages of INFO level or higher
