@@ -1,10 +1,12 @@
-
+from computer_interact.omni_parser2 import OmniParser2
 
 class WebAgent:
 
     def __init__(self, logger, config):
-        # Write agent actions in langraph 
-        pass
+        self.config = config
+        self.logger = logger
+        self.omni_parser2 = OmniParser2(logger=self.logger, config=self.config)
+        
 
     def run(self, user_query=None):
-        pass
+        self.omni_parser2.parse()

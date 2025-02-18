@@ -7,6 +7,7 @@ scripts/token.json
 .env
 weights
 my_screenshot.png
+my_screenshot_*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
