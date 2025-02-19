@@ -32,7 +32,8 @@ class Supervisor:
 
     
     def run(self, user_query=None):
-        completion = self.llm.chat.completions.create(
+        asyncio.run(self.web_agent.run(user_query=user_query))
+        '''completion = self.llm.chat.completions.create(
             model=self.config.agent_selector_model,
             messages=[
                 {"role": "system", "content": """
@@ -60,7 +61,7 @@ class Supervisor:
                     
             
         else:
-            self.logger.info("No nodes are selected")
+            self.logger.info("No nodes are selected")'''
 
     
 

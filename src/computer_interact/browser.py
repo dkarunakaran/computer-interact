@@ -3,7 +3,7 @@ import asyncio
 import signal
 import sys
 
-class AsyncPersistentBrowser:
+class Browser:
     def __init__(self):
         self.playwright = None
         self.browser = None
@@ -53,43 +53,3 @@ class AsyncPersistentBrowser:
                 await asyncio.sleep(1)
         finally:
             await self.close()
-
-async def main():
-    browser = AsyncPersistentBrowser()
-    await browser.start()
-    
-    # Example: Open a page and do some async operations
-    page = await browser.get_page()
-    await page.goto("https://example.com")
-    
-    # Keep the browser running
-    await browser.keep_alive()
-
-# Example with more complex usage
-async def example_with_multiple_pages():
-    browser = AsyncPersistentBrowser()
-    await browser.start()
-    
-    # Open multiple pages concurrently
-    pages = await asyncio.gather(
-        browser.get_page(),
-        browser.get_page(),
-        browser.get_page()
-    )
-    
-    # Navigate to different sites concurrently
-    await asyncio.gather(
-        pages[0].goto("https://example.com"),
-        pages[1].goto("https://google.com"),
-        pages[2].goto("https://github.com")
-    )
-    
-    # Keep browser alive
-    await browser.keep_alive()
-
-if __name__ == "__main__":
-    # Run the simple example
-    asyncio.run(main())
-    
-    # Or run the complex example
-    # asyncio.run(example_with_multiple_pages())
