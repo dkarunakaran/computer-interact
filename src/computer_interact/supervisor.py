@@ -5,6 +5,7 @@ from computer_interact.config_file import Config
 from computer_interact.agents.web_agent import WebAgent
 from computer_interact.agents.os_agent import OSAgent
 import os
+import asyncio
 
 # Ref 1: https://huggingface.co/microsoft/OmniParser-v2.0
 # Ref 2: https://github.com/microsoft/OmniParser/tree/master
@@ -55,7 +56,8 @@ class Supervisor:
                 if node_name == 'os_agent':
                     self.logger.info("OS agent is calling now...")
                 if node_name == 'web_agent':
-                    self.web_agent.run(user_query=user_query)
+                    asyncio.run(self.web_agent.run(user_query=user_query))
+                    
             
         else:
             self.logger.info("No nodes are selected")
