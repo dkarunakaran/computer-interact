@@ -8,7 +8,8 @@ class Action(TypedDict):
     args : str 
 
 class WebAgentState(TypedDict):
-    input: str
+    user_query: str
+    messages: Annotated[List[str], add]
     page : Page
     action : Action
     actions_taken : Annotated[List[str], add]
