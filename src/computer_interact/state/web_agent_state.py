@@ -10,6 +10,7 @@ class Action(TypedDict):
 class WebAgentState(TypedDict):
     user_query: str
     messages: Annotated[List[str], add]
+    sender: Annotated[List[str], add]
     page : Page
     action : Action
     actions_taken : Annotated[List[str], add]

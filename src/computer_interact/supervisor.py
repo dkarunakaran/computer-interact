@@ -32,7 +32,7 @@ class Supervisor:
 
     
     def run(self, user_query=None):
-        asyncio.run(self.web_agent.run(user_query=user_query))
+        self.web_agent.run(user_query=user_query)
         '''completion = self.llm.chat.completions.create(
             model=self.config.agent_selector_model,
             messages=[

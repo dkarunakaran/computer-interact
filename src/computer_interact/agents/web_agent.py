@@ -10,6 +10,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from openai import OpenAI
 import os
 import json
+from computer_interact.agents.web_agent_json_schema import response_json_supervisor, response_json_supervisor_wo_steps_details
 
 # Ref 1: https://github.com/ed-donner/llm_engineering/blob/main/week2/day5.ipynb for history inputing
 # Ref 2: https://github.com/langchain-ai/ollama-deep-researcher/blob/main/src/assistant/graph.py
@@ -31,9 +32,9 @@ class WebAgent:
         # Add nodes and edges 
         workflow = StateGraph(WebAgentState)
         workflow.add_node("supervisor_llm", self.supervisor_llm_node)
-        """workflow.add_node("omni_parser", self.omni_parser_node)
-        workflow.add_node("gui_action", self.gui_action_node)
-        workflow.add_node("finalize_summary", self.finalize_summary_node)
+        workflow.add_node("omni_parser", self.omni_parser_node)
+        """workflow.add_node("gui_action", self.gui_action_node)
+        workflow.add_node("finalize_summary", self.finalize_summary_node)"""
 
         # Add edges
         workflow.add_edge(START, "supervisor_llm")
@@ -45,12 +46,11 @@ class WebAgent:
             "omni_parser",
             "supervisor_llm"
         )
-        workflow.add_edge(
+        """workflow.add_edge(
             "gui_action",
             "supervisor_llm"
         )
         workflow.add_edge("finalize_summary", END)"""
-        workflow.add_edge(START, "supervisor_llm")
 
         # Set up memory
         memory = MemorySaver()
@@ -58,17 +58,28 @@ class WebAgent:
 
 
     # Define the function that determines whether to continue or not
-    def router(state: WebAgentState) -> Literal["omni_parser", "gui_action", "finalize_summary"]:
+    def router(self, state: WebAgentState) -> Literal["omni_parser", END]:
         messages = state['messages']
         last_message = messages[-1]
+        steps = json.loads(last_message)
         # If the LLM makes a tool call, then we route to the "tools" node
-        if last_message.tool_calls:
-            return "tools"
+        if "omni_parser" in steps['next_step']:
+            return "omni_parser"
         # Otherwise, we stop (reply to the user)
         return END
 
     def omni_parser_node(self, state:WebAgentState):
-        pass
+
+        self.logger.info("omni_parser node started...")
+        label_coordinates, parsed_content_list = self.omni_parser2.parse()
+        message = [
+                {"role": "user", "content": label_coordinates},
+                {"role": "user", "content": parsed_content_list},
+                {"role": "user", "content": "Here is the details on screen and No supervisor needs to make decision what to do from here"}
+            ]
+        
+        return {'messages': [message], 'sender': ['omni_parser']}
+        
 
     def gui_action_node(self, state:WebAgentState):
         system_msg = """
@@ -81,11 +92,11 @@ class WebAgent:
         """
         tools = [click]
         
+        
 
     def supervisor_llm_node(self, state:WebAgentState):
 
-        
-
+        self.logger.info("Supervsor node started...")
         system_msg = """
         You are a supervisor and tasked to select the right node for further automation.
         You have three nodes: omni_parser, gui_action, and finalize_summary. 
@@ -114,66 +125,26 @@ class WebAgent:
             #base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
         )
 
-
         if len(messages) == 0:
-            response_json_format = {
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "step_reasoning",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "steps_in_details": {
-                                "type": "string",
-                                "description": "More detailed description of all steps in the process"  
-                            },
-                            "next_step": {
-                                "type": "string",
-                                "description": "The next step in the process. if it is the first step, then it should be the first step in the process."
-                            }
-                        },
-                        "required": ["steps_in_details", "next_step"],
-                        "additionalProperties": False
-                    },
-                    "strict": True
-                }
-            }
+            # We only need to give the steps in deatils once. So this section only called first time and this json sceme request 
+            # additional deatils called steps_in_details.
+            response_json_format = response_json_supervisor
             messages = [
                 {"role": "system", "content": system_msg},
                 {"role": "user", "content": user_query}
             ]
-
         else:
-            response_json_format = {
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "step_reasoning",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "next_step": {
-                                "type": "string",
-                                "description": "The next step in the process. if it is the first step, then it should be the first step in the process."
-                            }
-                        },
-                        "required": ["next_step"],
-                        "additionalProperties": False
-                    },
-                    "strict": True
-                }
-            }
-
-
+            # No need to call steps_in details parameter in every request.
+            response_json_format = response_json_supervisor_wo_steps_details
+            
         completion = llm.chat.completions.create(
             #model='gemini-2.0-pro-exp-02-05',
             model='gpt-4o-mini',
             messages=messages,
             response_format=response_json_format
         )
-        steps = json.loads(completion.choices[0].message.content)
-        print(steps)
 
-        return {'messages': ""}
+        return {'messages': [completion.choices[0].message.content], 'sender': ['supervisor']}
 
     def finalize_summary_node(self, state:WebAgentState):
         pass
@@ -183,6 +154,7 @@ class WebAgent:
         initial_state = WebAgentState()
         initial_state['user_query'] = user_query
         result = self.graph.invoke(initial_state, config=self.graph_config)
+        print(result)
 
     
         
