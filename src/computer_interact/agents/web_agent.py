@@ -1,7 +1,4 @@
 from computer_interact.omni_parser2 import OmniParser2
-import asyncio
-from computer_interact.browser import Browser
-import time
 from typing import Literal, List
 from langgraph.graph import StateGraph, START, END
 from computer_interact.state.web_agent_state import WebAgentState
@@ -32,7 +29,7 @@ class WebAgent:
         # Add nodes and edges 
         workflow = StateGraph(WebAgentState)
         workflow.add_node("supervisor_llm", self.supervisor_llm_node)
-        workflow.add_node("omni_parser", self.omni_parser_node)
+        workflow.add_node("annotate", self.annotate_node)
         """workflow.add_node("gui_action", self.gui_action_node)
         workflow.add_node("finalize_summary", self.finalize_summary_node)"""
 
@@ -43,7 +40,7 @@ class WebAgent:
             self.router
         )
         workflow.add_edge(
-            "omni_parser",
+            "annotate",
             "supervisor_llm"
         )
         """workflow.add_edge(
@@ -58,27 +55,26 @@ class WebAgent:
 
 
     # Define the function that determines whether to continue or not
-    def router(self, state: WebAgentState) -> Literal["omni_parser", END]:
+    def router(self, state: WebAgentState) -> Literal["annotate", END]:
+
         messages = state['messages']
-        last_message = messages[-1]
+        last_message = messages[-1][0]['content']
         steps = json.loads(last_message)
         # If the LLM makes a tool call, then we route to the "tools" node
-        if "omni_parser" in steps['next_step']:
-            return "omni_parser"
+        if "annotate" in steps['next_step']:
+            return "annotate"
         # Otherwise, we stop (reply to the user)
         return END
 
-    def omni_parser_node(self, state:WebAgentState):
+    def annotate_node(self, state:WebAgentState):
 
         self.logger.info("omni_parser node started...")
         label_coordinates, parsed_content_list = self.omni_parser2.parse()
         message = [
-                {"role": "user", "content": label_coordinates},
-                {"role": "user", "content": parsed_content_list},
-                {"role": "user", "content": "Here is the details on screen and No supervisor needs to make decision what to do from here"}
+                {"role": "user", "content": f"Here is the details of screen items and their locations: {str(parsed_content_list)}. Now supervisor needs to make decision what to do from here"}
             ]
         
-        return {'messages': [message], 'sender': ['omni_parser']}
+        return {'messages': message, 'sender': ['annotate']}
         
 
     def gui_action_node(self, state:WebAgentState):
@@ -98,26 +94,50 @@ class WebAgent:
 
         self.logger.info("Supervsor node started...")
         system_msg = """
-        You are a supervisor and tasked to select the right node for further automation.
-        You have three nodes: omni_parser, gui_action, and finalize_summary. 
-        Yor task is to select the right node based on the automation history.
-        you start with creating plan for the web automation based on the user query.
-        From there, you select the right node for the next step.
-        Once the that node finishes with the task, you select the next node for the next step
-        Once you are done with all the steps, you finalize the summary of the automation process.
-        Keep track of all the steps and you have the clear undesrtanding of the each step and where we are in the process.
-       
-        Example 1: 
-        * If the user query is "Open a web browser and naviagate to scholar.google.com and seraach for 'OpenAI'".
-        * Then you create plan for the web automation based on the user query.The select the node for the next step. 
-        * In this case, you select the omni_parser node for taking the screenshot of the screen to navigate.
-        * Now, you will have all the screen component details, you select the gui_action node to click on the browser to open it.
-        * Now, you have to select the next step which will be calling omni_parser node to take the screenshot of the screen to understand where we are in the process
-        * Then, you call the gui_action node to click on the address bar and type scholar.google.com and press enter.
-        * You keep on doing this untill you reach the end of the process.
+        You are WebRover, an autonomous AI agent designed to browse the web, interact with pages, and extract or aggregate information based on user queries—much like a human browsing the internet. You have access to the following tools:
+            - Click Elements: Click on a specified element using its XPath. For links, open them in a new tab.
+            - Type in Inputs: Type text into an input field identified by its XPath.
+            - Scroll and Read (Scrape+RAG): Scroll down the page while scraping visible text and images to store in a vector database.
+            - Close Page: Close the current tab and switch focus to the last opened tab.
+            - Wait: Pause for a specified amount of time.
+            - Go Back: Navigate back to the previous page.
+            - Go to Search: Navigate to Google.
+
+        Your inputs include:
+            - The user's query (what the user wants to achieve).
+            - A list of icon/text box description on the current page with properties: [type, bbox, interactivity, content, source].
+            - A record of actions taken so far.
+            - A list of URLs already visited (do not revisit the same URL).
+
+        Your task:
+            - Decide the next best action (or a coherent sequence of actions) to move closer to fulfilling the user's request.
+            - Evaluate the context by carefully reviewing the user's query, previous actions taken, visited URLs, and conversation history.
+            - **Important:** When selecting a DOM element for an action, examine its "text" and "description" fields. For example, if the task is to input a departure date on Google Flights, only choose an input field if its description or visible text includes keywords like "departure", "depart", or "depart date". Do not select a generic input element that lacks specific contextual clues.
+            - Avoid repeating the same search or action if it has already been performed without progress. If a search term or action was already attempted and yielded no new information, refine or change your approach.
+            - Plan your steps: If multiple sequential actions are needed (e.g., scroll then click, or type a refined search query), output them in order until a page navigation or significant state change occurs.
+            - Be natural and precise: Mimic human browsing behavior—click on visible links, type into search bars, scroll to reveal more content, and update your strategy if repeated results occur.
+
+        Action guidelines:
+            - Click Elements: Use for selecting links, buttons, or interactive items. If a link has already been followed (or if its URL is in the visited list), avoid re-clicking it.
+            - Type in Inputs: Use for entering or refining search queries and form inputs. If the same query has been issued before, consider modifying or extending it.
+            - Scroll and Read (Scrape+RAG): Use to gather content when no immediately actionable link is visible.
+            - Close Page: Use when you need to exit a tab and return to a previous page.
+            - Wait: Use to allow the page sufficient time to load or update after an action.
+            - Go Back: Use when you need to return to a previous state or page.
+            - Go to Search & WebPage Search: Use these to initiate or refine searches if no better actions are available.
+            - Retry: Use only when you are unable to infer the next action from the current context.
+
+        Output format:
+            - Clearly output your action(s) in a structured format including:
+                - Thought: Your reasoning behind the chosen action(s), considering previous attempts.
+                - Action: The action to be taken.
+                - Reasoning: Detailed reasoning behind your action.
+            - Do not output a repeated search term if it was already used and did not lead to progress; instead, suggest a refined or alternative approach.
+            - Only output one coherent action or logical sequence of actions at a time, ensuring each step builds on previous actions logically and naturally.
         """
 
         messages = state['messages']
+        #print(type(messages))
         user_query = state['user_query']
 
         llm = OpenAI(
@@ -129,7 +149,7 @@ class WebAgent:
             # We only need to give the steps in deatils once. So this section only called first time and this json sceme request 
             # additional deatils called steps_in_details.
             response_json_format = response_json_supervisor
-            messages = [
+            message = [
                 {"role": "system", "content": system_msg},
                 {"role": "user", "content": user_query}
             ]
@@ -137,14 +157,23 @@ class WebAgent:
             # No need to call steps_in details parameter in every request.
             response_json_format = response_json_supervisor_wo_steps_details
             
+            message = [messages[-1]] 
+            print(message)
+            
         completion = llm.chat.completions.create(
             #model='gemini-2.0-pro-exp-02-05',
             model='gpt-4o-mini',
-            messages=messages,
+            messages=message,
             response_format=response_json_format
         )
 
-        return {'messages': [completion.choices[0].message.content], 'sender': ['supervisor']}
+        print(completion.choices[0].message.content)
+
+        message = [
+            {"role": "user", "content": completion.choices[0].message.content}
+        ]
+
+        return {'messages': [message], 'sender': ['supervisor']}
 
     def finalize_summary_node(self, state:WebAgentState):
         pass

@@ -1,95 +1,102 @@
-from playwright.async_api import async_playwright
-import asyncio
-import signal
-import sys
+from computer_interact.omni_parser2 import OmniParser2
+import logging
+from computer_interact.config_file import Config
+from dotenv import load_dotenv
+from openai import OpenAI
+import os
+import json
+import re
+load_dotenv()  
 
-class AsyncPersistentBrowser:
-    def __init__(self):
-        self.playwright = None
-        self.browser = None
-        self.context = None
-        self.running = True
-        
-        # Handle Ctrl+C gracefully
-        signal.signal(signal.SIGINT, self.signal_handler)
-        
-    def signal_handler(self, signum, frame):
-        print("\nClosing browser gracefully...")
-        self.running = False
-        
-    async def start(self):
-        """Start the browser if it's not already running"""
-        if not self.browser:
-            self.playwright = await async_playwright().start()
-            self.browser = await self.playwright.chromium.launch(
-                headless=False,
-                args=['--start-maximized']
-            )
-            self.context = await self.browser.new_context(
-                viewport=None,
-                no_viewport=True
-            )
-    
-    async def get_page(self):
-        """Get a new page in the existing browser context"""
-        if not self.browser:
-            await self.start()
-        return await self.context.new_page()
-    
-    async def close(self):
-        """Clean up resources"""
-        if self.context:
-            await self.context.close()
-        if self.browser:
-            await self.browser.close()
-        if self.playwright:
-            await self.playwright.stop()
-            
-    async def keep_alive(self):
-        """Keep the browser running indefinitely"""
-        try:
-            print("Browser is running. Press Ctrl+C to stop...")
-            while self.running:
-                await asyncio.sleep(1)
-        finally:
-            await self.close()
 
-async def main():
-    browser = AsyncPersistentBrowser()
-    await browser.start()
-    
-    # Example: Open a page and do some async operations
-    page = await browser.get_page()
-    await page.goto("https://example.com")
-    
-    # Keep the browser running
-    await browser.keep_alive()
+logger = logging.getLogger(__name__)
+config = Config()
+omni_parser2 = OmniParser2(logger=logger, config=config)
 
-# Example with more complex usage
-async def example_with_multiple_pages():
-    browser = AsyncPersistentBrowser()
-    await browser.start()
-    
-    # Open multiple pages concurrently
-    pages = await asyncio.gather(
-        browser.get_page(),
-        browser.get_page(),
-        browser.get_page()
-    )
-    
-    # Navigate to different sites concurrently
-    await asyncio.gather(
-        pages[0].goto("https://example.com"),
-        pages[1].goto("https://google.com"),
-        pages[2].goto("https://github.com")
-    )
-    
-    # Keep browser alive
-    await browser.keep_alive()
+label_coordinates, parsed_content_list = omni_parser2.parse()
+query6 = "Open a firefox web browser and type scholar.google.com to naviagte to the site and then search for 'openai'"
 
-if __name__ == "__main__":
-    # Run the simple example
-    asyncio.run(main())
-    
-    # Or run the complex example
-    # asyncio.run(example_with_multiple_pages())
+llm = OpenAI(
+    #api_key=os.environ.get("GEMINI_API_KEY"),
+    #base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+)
+
+system_msg = """
+    You are WebRover, an autonomous AI agent designed to browse the web, interact with pages, and extract or aggregate information based on user queries—much like a human browsing the internet. You have access to the following tools:
+    **Available Tools:**
+
+    * **Click Elements:** Click an interactive element (button, link, etc.) identified by its description.
+    * **Type in Inputs:** Type text into an input field, identified by its description.
+    * **Scroll and Read:** Scroll the page and extract text/images for context.
+    * **Go Back:** Return to the previous page.
+    * **Go to Search:** Open Google Search.
+
+    **Input:**
+
+    * **User query:** user's request
+    * **Screen Elements:** A list of screen elements with properties: [type, bbox, interactivity, content, source].
+    * **action query:** LLM request for specfic action
+    * **A record of actions taken so far.
+    * **A list of URLs already visited (do not revisit the same URL).
+
+    **Task:**
+
+    1.  Analyze the user query and the current page elements.
+    2.  Choose the most appropriate tool to advance towards the user's goal.
+    3.  Return the next action as a JSON object with the following structure:
+
+        * **For Click Elements/Type in Inputs:**
+            ```json
+            {   "Thought": "Your reasoning behind the chosen action(s), considering previous attempts.",
+                "Action": {
+                    "type": "Click" or "Type",
+                    "content": "Element description to interact with",
+                    "bbox": [x1, y1, x2, y2] //Bounding box of the element
+                },
+                "Reasoning": "Detailed reasoning behind your action."
+            }
+            ```
+        * **For other tools:**
+            ```json
+            {   "Thought": "Your reasoning behind the chosen action(s), considering previous attempts.",
+                "Action": "type"
+                "Reasoning": "Detailed reasoning behind your action."
+            }
+            ```
+
+    **Action Guidelines:**
+
+    * **Click Elements:** Use for links, buttons, and interactive elements. Avoid re-clicking previously visited links.
+    * **Type in Inputs:** Use for search queries and form inputs. Modify previous queries if needed.
+    * **Scroll and Read:** Use when no immediate actionable element is visible.
+    * **Ensure "Content" and "Bbox" are always included for "Click Elements" and "Type in Inputs" actions.**
+
+    **Output format:**
+
+    *   **Clearly output your action(s) in a structured JSON format including:
+            - Thought: Your reasoning behind the chosen action(s), considering previous attempts.
+            - Action: The action to be taken.
+            - Reasoning: Detailed reasoning behind your action.
+    *  **Do not output a repeated search term if it was already used and did not lead to progress; instead, suggest a refined or alternative approach.
+    *  **Only output one coherent action or logical sequence of actions at a time, ensuring each step builds on previous actions logically and naturally.
+"""
+
+messages = [
+    {'role': 'system', 'content': system_msg},
+    {'role': 'user', 'content': f"User query: {query6}"},
+    {'role': 'user', 'content': f"list of icon/text box description: {parsed_content_list}"},
+    {'role': 'user', 'content': f"Actions Taken So far: ['clicked on the firefox browser', 'Typed'scholar.google.com' into the address bar']"},
+    {'role': 'user', 'content': f"Urls Already Visited: "}
+]
+completion = llm.chat.completions.create(
+    #model='gemini-2.0-pro-exp-02-05',
+    model="gpt-4o-mini",
+    messages=messages
+)
+content = completion.choices[0].message.content
+print(content)
+content = content.strip().replace("json", "").replace("", "").strip()
+content = content.strip().replace("```", "").replace("", "").strip()
+json_string = json.loads(content)
+
+
