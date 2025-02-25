@@ -25,7 +25,7 @@ class WebAgent:
         self.config = config
         self.logger = logger
         self.omni_parser2 = OmniParser2(logger=self.logger, config=self.config)
-        self.graph_config = {"configurable": {"thread_id": "1", "recursion_limit": 10}}
+        self.graph_config = {"configurable": {"thread_id": "1", "recursion_limit": 20}}
         # Add nodes and edges 
         workflow = StateGraph(WebAgentState)
         workflow.add_node("llm", self.llm_node)
@@ -41,12 +41,8 @@ class WebAgent:
             self.router
         )
         workflow.add_edge(
-            "annotate",
-            "llm"
-        )
-        workflow.add_edge(
             "gui_action",
-            "llm"
+            "annotate"
         )
         """
         workflow.add_edge("finalize_summary", END)"""
@@ -59,14 +55,13 @@ class WebAgent:
     # Define the function that determines whether to continue or not
     def router(self, state: WebAgentState) -> Literal["annotate", "gui_action", END]:
 
-        messages = state['messages']
-        last_message = messages[-1][0]['content']
-        steps = json.loads(last_message)
+        last_action = state['action'][-1]
+        steps = json.loads(last_action)
         # If the LLM makes a tool call, then we route to the "tools" node
-        if "annotate" in steps['next_step']:
+        if "annotate" in steps['node']:
             return "annotate"
         
-        if "gui_action" in steps['next_step']:
+        if "gui_action" in steps['node']:
             return "gui_action"
         
         # Otherwise, we stop (reply to the user)
@@ -74,10 +69,10 @@ class WebAgent:
 
     def annotate_node(self, state:WebAgentState):
 
-        self.logger.info("omni_parser node started...")
+        self.logger.info("annotate node started...")
         label_coordinates, parsed_content_list = self.omni_parser2.parse()
 
-        return {'parsed_content_list': parsed_content_list, 'sender': ['annotate']}
+        return {'parsed_content_list': str(parsed_content_list), 'sender': ['annotate']}
         
 
     def gui_action_node(self, state:WebAgentState):
@@ -91,8 +86,8 @@ class WebAgent:
         self.logger.info("llm_node started...")
         system_msg = prompts.system_msg_llm_node_web_agent
         user_query = state['user_query']
-        parsed_content_list = state['parsed_content_list'][-1]
-
+        parsed_content_list = state['parsed_content_list']
+        actions_taken = state['actions_taken']
         llm = OpenAI(
             #api_key=os.environ.get("GEMINI_API_KEY"),
             #base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
@@ -101,8 +96,8 @@ class WebAgent:
         messages = [
             {'role': 'system', 'content': system_msg},
             {'role': 'user', 'content': f"User query: {user_query}"},
-            {'role': 'user', 'content': f"list of icon/text box description: {parsed_content_list}"},
-            {'role': 'user', 'content': f"Actions Taken So far: "},
+            {'role': 'user', 'content': f"List of icon/text box description: {parsed_content_list}"},
+            {'role': 'user', 'content': f"Actions Taken So far: {actions_taken}"},
             {'role': 'user', 'content': f"Urls Already Visited: "}
         ]
         completion = llm.chat.completions.create(
@@ -114,6 +109,7 @@ class WebAgent:
         content = completion.choices[0].message.content
         content = content.strip().replace("json", "").replace("", "").strip()
         action = content.strip().replace("```", "").replace("", "").strip()
+
         print(action)
 
         return {'action': [action], 'sender': ['llm']}
