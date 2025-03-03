@@ -8,6 +8,7 @@ from openai import OpenAI
 import os
 import json
 import  computer_interact.agents.prompts as prompts 
+import pyautogui
 
 # Ref 1: https://github.com/ed-donner/llm_engineering/blob/main/week2/day5.ipynb for history inputing
 # Ref 2: https://github.com/langchain-ai/ollama-deep-researcher/blob/main/src/assistant/graph.py
@@ -50,6 +51,7 @@ class WebAgent:
         # Set up memory
         memory = MemorySaver()
         self.graph = workflow.compile(checkpointer=memory)
+        self.screen_width, self.screen_height = pyautogui.size()
 
 
     # Define the function that determines whether to continue or not
@@ -77,6 +79,9 @@ class WebAgent:
 
     def gui_action_node(self, state:WebAgentState):
         self.logger.info("gui_action node started...")
+
+        #"bbox": [0.08063974231481552, 0.9437996745109558, 0.11171162128448486, 0.9919797778129578] = [x1, y1, x2, y2]
+        # bbox in a ration, we need to multiply x1 nad x2 with screen_width and y1 and y2 with screen_height
 
         return {'actions_taken': [""], 'sender': ['gui_action']}
             
