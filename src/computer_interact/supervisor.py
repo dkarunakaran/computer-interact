@@ -1,7 +1,5 @@
 from openai import OpenAI
-from computer_interact.nodes.computer_use_node import ComputerUseNode
-from computer_interact.nodes.api_operation_node import APIOperationNode
-from computer_interact.nodes import router_node
+from computer_interact.agents.web_agent import WebAgent
 import os
 from computer_interact.utils import logger_helper
 
@@ -24,8 +22,7 @@ class Supervisor:
         self.state = []
 
     def configure(self):
-        self.computerUseNode = ComputerUseNode(logger=self.logger, config=self.config)
-        self.apiOperationNode = APIOperationNode()
+        self.web_agent = WebAgent(logger=self.logger, config=self.config)
 
     def __get_config(self):
         """
@@ -41,36 +38,7 @@ class Supervisor:
 
     
     def run(self, user_query=None):
-        completion = self.llm.chat.completions.create(
-            model=self.config['step_creation_model'],
-            messages=[
-                {"role": "system", "content": """
-                You are a supervisor and tasked to select the right node for further automation. 
-                You have two nodes: computer_use_node and api_operation_node.
-                Given, the user prompt select the right node. 
-                If there is no right match, then don't return any node.
-                """
-                },
-                {
-                    "role": "user", "content": [{"type":"text", "text":user_query}]
-                }
-            ],
-            tools = router_node.tools
-        )
-
-        node_selected = completion.choices[0].message.tool_calls
-        self.logger.info(node_selected)
-        if node_selected:
-            for node in node_selected:
-                node_name = node.function.name
-                if node_name == 'api_operation_node':
-                    result = self.apiOperationNode.run(user_query=user_query)
-                    self.logger.debug(result)
-                if node_name == 'computer_use_node':
-                    self.computerUseNode.run(user_query=user_query)
-                    self.state.append({"name":"computer_use_node","message": self.computerUseNode.message})
-        else:
-            self.logger.info("No nodes are selected")
+        self.web_agent.run(user_query=user_query)
 
         
 
