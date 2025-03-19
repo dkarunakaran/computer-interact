@@ -6,6 +6,7 @@ scripts/token.json
 .pypirc
 .env
 my_screenshot.png
+src/computer_interact/weights_old_omni_parser/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
