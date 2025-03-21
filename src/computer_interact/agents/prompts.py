@@ -24,7 +24,7 @@ system_msg_llm_node_web_agent = """
             {   "Thought": "Your reasoning behind the chosen action(s), considering previous attempts.",
                 "Action": "Specify what action needs to be taken in details."
                 "Reasoning": "Detailed reasoning behind your action."
-                "Node": "annotate" or "end"
+                "Node": "annotate" or "finalize_summary" 
             }
             ```
 
@@ -42,7 +42,7 @@ system_msg_llm_node_web_agent = """
             - Thought: Your reasoning behind the chosen action(s), considering previous attempts.
             - Action: Specify the action needs to be taken.
             - Reasoning: Detailed reasoning behind your action.
-            - Node:  there are two nodes, annotate and end. You have to select the next node based on the action you are taking.
+            - Node: There are two nodes, annotate and finalize_summary. You have to select the next node based on the action you are taking. select the 'finalize_summary' only when you are absolutely sure about there is no further action is required.
     *  **Do not output a repeated search term if it was already used and did not lead to progress; instead, suggest a refined or alternative approach.
     *  **Only output one coherent action or logical sequence of actions at a time, ensuring each step builds on previous actions logically and naturally.
 

@@ -36,11 +36,10 @@ class WebAgent:
         workflow.add_node("llm", self.llm_node)
         workflow.add_node("annotate", self.annotate_node)
         workflow.add_node("gui_action", self.gui_action_node)
-        #workflow.add_node("finalize_summary", self.finalize_summary_node)
+        workflow.add_node("finalize_summary", self.finalize_summary_node)
 
         # Add edges
         workflow.add_edge(START, "llm")
-        workflow.add_edge("llm", "annotate")
         workflow.add_edge("annotate", "gui_action")
         workflow.add_conditional_edges(
             "llm", 
@@ -50,7 +49,7 @@ class WebAgent:
             "gui_action",
             "llm"
         )
-        #workflow.add_edge("finalize_summary", END)
+        workflow.add_edge("finalize_summary", END)
 
         # Set up memory
         memory = MemorySaver()
@@ -59,7 +58,7 @@ class WebAgent:
 
 
     # Define the function that determines whether to continue or not
-    def router(self, state: WebAgentState) -> Literal["annotate", END]:
+    def router(self, state: WebAgentState) -> Literal["annotate", "finalize_summary", END]:
 
         action = json.loads(state['action_to_be_taken'])
 
@@ -70,6 +69,8 @@ class WebAgent:
         # If the LLM makes a tool call, then we route to the "tools" node
         if "annotate" in action['Node']:
             return "annotate"
+        if "finalize_summary" in action['Node']:
+            return "finalize_summary"
         
         # Otherwise, we stop (reply to the user)
         return END
@@ -83,16 +84,43 @@ class WebAgent:
         actions_to_be_taken = action['Action']
         output_text, selected_function = self.perform_gui_grounding(screenshot, query=actions_to_be_taken)
 
-        return {'selected_function': str(selected_function), 'sender': ['annotate']}
+        return {'selected_function': json.dumps(selected_function), 'sender': ['annotate']}
     
 
     def gui_action_node(self, state:WebAgentState):
         self.logger.info("gui_action node started...")
         action = json.loads(state['action_to_be_taken'])
         action_taken = action['Action']
-        function = state['selected_function']
-        print(function)
-        print(action_taken)
+        selected_function = json.loads(state['selected_function'])
+        print(f"Selected function: {selected_function}")
+        print(f"Action taken: {action_taken}")
+
+        # Executing the action
+        action = selected_function['arguments']["action"]
+        if action in ["left_click", "middle_click", "double_click"]:
+            coordinate = selected_function['arguments']["coordinate"]
+            pyautogui.click(coordinate[0]-2, coordinate[1]+2)  
+        elif action == "right_click":
+            pyautogui.click(button='right')
+        elif action == "type":
+            text = selected_function['arguments']["text"]
+            pyautogui.write(text, interval=0.25)  
+        elif action == "key":
+            keys = selected_function['arguments']["keys"]
+            if 'ctrl' in keys:
+                pyautogui.keyDown('ctrl')
+            for key in keys:
+                if key != 'ctrl':
+                    pyautogui.press(key)
+            if 'ctrl' in keys:
+                pyautogui.keyUp('ctrl')
+
+        elif action == "mouse_move":
+            coordinate = selected_function['arguments']["coordinate"]
+            pyautogui.moveTo(coordinate[0], coordinate[1])  
+        elif action == "scroll":
+            pixels = selected_function['arguments']["pixels"]
+            pyautogui.scroll(pixels)
 
         return {'actions_taken': [action_taken], 'sender': ['gui_action']}
     
@@ -126,7 +154,7 @@ class WebAgent:
     
     def finalize_summary_node(self, state:WebAgentState):
 
-        return {'final_answer': ""}
+        return {'final_answer': "", 'sender': ['finalize_summary']}
 
     def run(self, user_query=None):
         initial_state = WebAgentState()
@@ -193,50 +221,6 @@ class WebAgent:
         #display_image = draw_point(input_image, action['arguments']['coordinate'], color='green')
         
         return output_text, selected_function
-
-        
-    def run_old(self, user_query=None):
-        history = []
-        steps = self.get_steps(user_query=user_query)
-        self.logger.info(steps)
-        # Going through each steps
-        for count, dict in enumerate(steps["steps"]):
-            phrase = dict['description'] + " using " + dict['device']
-            time.sleep(1)
-            self.logger.info(f"Step {count}: {phrase}")
-            pyautogui.screenshot('my_screenshot.png')
-            screenshot = "my_screenshot.png"
-            output_text, selected_function = self.perform_gui_grounding(screenshot, query=phrase, history=history)
-            # Display results
-            self.logger.info(selected_function)
-            # Executing the action
-            action = selected_function['arguments']["action"]
-            if action in ["left_click", "middle_click", "double_click"]:
-                coordinate = selected_function['arguments']["coordinate"]
-                pyautogui.click(coordinate[0]-2, coordinate[1]+2)  
-            elif action == "right_click":
-                pyautogui.click(button='right')
-            elif action == "type":
-                text = selected_function['arguments']["text"]
-                pyautogui.write(text, interval=0.25)  
-            elif action == "key":
-                keys = selected_function['arguments']["keys"]
-                if 'ctrl' in keys:
-                    pyautogui.keyDown('ctrl')
-                for key in keys:
-                    if key != 'ctrl':
-                        pyautogui.press(key)
-                if 'ctrl' in keys:
-                    pyautogui.keyUp('ctrl')
-
-            elif action == "mouse_move":
-                coordinate = selected_function['arguments']["coordinate"]
-                pyautogui.moveTo(coordinate[0], coordinate[1])  
-            elif action == "scroll":
-                pixels = selected_function['arguments']["pixels"]
-                pyautogui.scroll(pixels)
-
-            history.append(ContentItem(text=phrase+str(selected_function)))
 
     
 
