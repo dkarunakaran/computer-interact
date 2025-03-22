@@ -7,7 +7,6 @@ Disclaimer: It is important to note that this is a starting point and requires f
 A specific use case I envision is web search. For example, if we need to perform a web search on a specific topic, we often use Selenium or Playwright for web scraping. However, we frequently get blocked, especially by Google sites. If we can search the way a human does, these sites may not detect scraping.
 
 Disclaimer: Currently, the library can navigate sites based on instructions, but data scraping is not yet implemented.
-Design
 
 ## Architecture of the library
 
