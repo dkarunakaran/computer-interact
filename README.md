@@ -86,20 +86,8 @@ from computer_interact.supervisor import Supervisor
 from dotenv import load_dotenv
 
 load_dotenv()  
-
-query = """
-action 1: open the firfox web browser
-action 2: click on the address bar
-action 3: type scholar.google.com 
-action 4: press enter for search
-action 5: type openai in the search box of google scholar
-action 6: press enter for search
-action 7: close the browser
-"""
-user_query = query
-
+user_query = "Open a firefox web browser and  type scholar.google.com and enter and then search for 'OpenAI'"
 supervisor = Supervisor()
-
 supervisor.config["debug"] = True
 
 # Make sure the config is changed before the configure function call.
