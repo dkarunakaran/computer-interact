@@ -1,7 +1,7 @@
 
 class Config:
   debug = False
-  agent_selector_model = 'gemini-2.0-pro-exp-02-05'
-  caption_model_path = 'computer_interact/weights/icon_caption'
-  yolo_model_path = 'computer_interact/weights/icon_detect/model.pt'
-  box_threshold = 0.05
+  llm = 'gpt-4o-mini' #'gemini-2.0-pro-exp-02-05'
+  llm_api_key_name = 'OPENAI_API_KEY' #GEMINI_API_KEY
+  llm_base_url = 'https://api.openai.com/v1' #'https://generativelanguage.googleapis.com/v1beta/openai/'
+  computer_use_model = 'Qwen/Qwen2.5-VL-7B-Instruct'

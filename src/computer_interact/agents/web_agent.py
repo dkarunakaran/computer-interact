@@ -10,7 +10,7 @@ from qwen_agent.llm.fncall_prompts.nous_fncall_prompt import (
     ContentItem,
 )
 from transformers.models.qwen2_5_vl.image_processing_qwen2_5_vl import smart_resize
-from computer_interact.nodes.tools import ComputerUse
+from computer_interact.tools.computer_use import ComputerUse
 from computer_interact.utils import draw_point
 import json
 import pyautogui
@@ -18,7 +18,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from typing import Literal, List
 from langgraph.graph import StateGraph, START, END
 from computer_interact.state.web_agent_state import WebAgentState
-import  computer_interact.agents.prompts as prompts 
+import computer_interact.agents.prompts as prompts 
 
 
 # Ref: https://github.com/QwenLM/Qwen2.5-VL/blob/main/cookbooks/computer_use.ipynb
@@ -27,9 +27,13 @@ class WebAgent:
     def __init__(self, logger, config = None):
         self.logger = logger
         self.config = config
-        model_path = self.config['computer_use_model']
-        self.processor = Qwen2_5_VLProcessor.from_pretrained(model_path)
-        self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_path, torch_dtype=torch.bfloat16, device_map="auto")
+        self.processor = Qwen2_5_VLProcessor.from_pretrained(self.config.computer_use_model)
+        self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(self.config.computer_use_model, torch_dtype=torch.bfloat16, device_map="auto")
+        self.llm = OpenAI(
+            api_key=os.environ.get(self.config.llm_api_key_name),
+            base_url=self.config.llm_base_url
+        )
+
         self.graph_config = {"configurable": {"thread_id": "1", "recursion_limit": 20}}
         # Add nodes and edges 
         workflow = StateGraph(WebAgentState)
@@ -130,20 +134,14 @@ class WebAgent:
         system_msg = prompts.system_msg_llm_node_web_agent
         user_query = state['user_query']
         actions_taken = state['actions_taken']
-        llm = OpenAI(
-            #api_key=os.environ.get("GEMINI_API_KEY"),
-            #base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-        )
-
         messages = [
             {'role': 'system', 'content': system_msg},
             {'role': 'user', 'content': f"User query: {user_query}"},
             {'role': 'user', 'content': f"Actions Taken So far: {actions_taken}"},
             {'role': 'user', 'content': f"Urls Already Visited: "}
         ]
-        completion = llm.chat.completions.create(
-            #model='gemini-2.0-pro-exp-02-05',
-            model='gpt-4o-mini',
+        completion = self.llm.chat.completions.create(
+            model=self.config.llm,
             messages=messages
         )
         content = completion.choices[0].message.content
