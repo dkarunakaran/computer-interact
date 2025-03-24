@@ -7,14 +7,13 @@ Disclaimer: It is important to note that this is a starting point and requires f
 A specific use case I envision is web search. For example, if we need to perform a web search on a specific topic, we often use Selenium or Playwright for web scraping. However, we frequently get blocked, especially by Google sites. If we can search the way a human does, these sites may not detect scraping.
 
 Disclaimer: Currently, the library can navigate sites based on instructions, but data scraping is not yet implemented.
-Design
 
 ## Architecture of the library
 
 ![alt text](images/process.png "Title")
 
 
-At the heart of this library lies the Qwen 2.5 VL 7B Instruct model. This powerful, 7-billion-parameter vision-language model can understand both image and text content. It goes beyond simple object detection by analyzing the structure and content of images, including text, charts, and layouts. This capability makes it well-suited for automating computer tasks, where understanding the visual context of a screen or interface is crucial. 
+The heart of this library is Qwen 2.5 VL 7B Instruct model. This powerful, 7-billion-parameter vision-language model can understand both image and text content. It goes beyond simple object detection by analyzing the structure and content of images, including text, charts, and layouts. This capability makes it well-suited for automating computer tasks, where understanding the visual context of a screen or interface is crucial. 
 
 ## Requirement
 This required an Nvidia GPU with 12GB of VRAM to run the Hugging Face model locally. It also required the Gemini API.
@@ -86,20 +85,8 @@ from computer_interact.supervisor import Supervisor
 from dotenv import load_dotenv
 
 load_dotenv()  
-
-query = """
-action 1: open the firfox web browser
-action 2: click on the address bar
-action 3: type scholar.google.com 
-action 4: press enter for search
-action 5: type openai in the search box of google scholar
-action 6: press enter for search
-action 7: close the browser
-"""
-user_query = query
-
+user_query = "Open a firefox web browser and  type scholar.google.com and enter and then search for 'OpenAI'"
 supervisor = Supervisor()
-
 supervisor.config["debug"] = True
 
 # Make sure the config is changed before the configure function call.
